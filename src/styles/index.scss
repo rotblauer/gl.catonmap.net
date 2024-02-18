@@ -3,6 +3,8 @@
   src: url('../fonts/Inter.ttf');
 }
 
+@import 'maplibre-gl/dist/maplibre-gl.css';
+@import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 @import 'variables';
 @import 'scaffolding';
 
