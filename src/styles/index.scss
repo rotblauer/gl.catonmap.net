@@ -5,3 +5,7 @@
 
 @import 'variables';
 @import 'scaffolding';
+
+html, body, #map {
+  height: 100%;
+}
