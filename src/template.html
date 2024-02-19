@@ -1,14 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
 
     <title><%= htmlWebpackPlugin.options.title %></title>
-  </head>
+</head>
 
-  <body>
-    <div id="map"></div>
-  </body>
+<body>
+<!--<div class="container py-4 px-3 mx-auto">-->
+<!--    <h1>Hello, Bootstrap and Webpack!</h1>-->
+<!--    <button class="btn btn-primary">Primary button</button>-->
+<!--</div>-->
+<nav class="navbar fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand bg-body-tertiary" href="#">Cat Tracks</a>
+
+        <div class="align-items-end">
+            <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbarServices" aria-controls="offcanvasNavbarServices"
+                    aria-label="Toggle navigation">
+                <span>Services</span>
+                <!--                            <span class="navbar-toggler-icon"></span>-->
+                <!--                <span><i class="bi bi-0-circle"></i></span>-->
+                <!--                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-0-circle" viewBox="0 0 16 16">-->
+                <!--                    <path d="M7.988 12.158c-1.851 0-2.941-1.57-2.941-3.99V7.84c0-2.408 1.101-3.996 2.965-3.996 1.857 0 2.935 1.57 2.935 3.996v.328c0 2.408-1.101 3.99-2.959 3.99M8 4.951c-1.008 0-1.629 1.09-1.629 2.895v.31c0 1.81.627 2.895 1.629 2.895s1.623-1.09 1.623-2.895v-.31c0-1.8-.621-2.895-1.623-2.895"></path>-->
+                <!--                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8"></path>-->
+                <!--                </svg>-->
+            </button>
+            <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasNavbarSnaps" aria-controls="offcanvasNavbarSnaps"
+                    aria-label="Toggle navigation">
+                <!--            <span class="navbar-toggler-icon"></span>-->
+                <span class="">Snaps</span>
+            </button>
+<!--            <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"-->
+<!--                    data-bs-target="#offcanvasNavbarLaps" aria-controls="offcanvasNavbarLaps"-->
+<!--                    aria-label="Toggle navigation">-->
+<!--                &lt;!&ndash;            <span class="navbar-toggler-icon"></span>&ndash;&gt;-->
+<!--                <span class="">Laps</span>-->
+<!--            </button>-->
+        </div>
+
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarServices"
+             aria-labelledby="offcanvasNavbarServicesLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasNavbarServicesLabel">Services</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                    <!--                    <li class="nav-item">-->
+                    <!--                        <a class="nav-link active" aria-current="page" href="#">Home</a>-->
+                    <!--                    </li>-->
+                    <!--                    <li class="nav-item">-->
+                    <!--                        <a class="nav-link" href="#">Link</a>-->
+                    <!--                    </li>-->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            ia.level-23
+                        </a>
+                        <ul class="dropdown-menu border-0">
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            rye.level-23
+                        </a>
+                        <ul class="dropdown-menu border-0">
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </li>
+                    <!--                    <li class="nav-item dropdown">-->
+                    <!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
+                    <!--                           aria-expanded="false">-->
+                    <!--                            Laps-->
+                    <!--                        </a>-->
+                    <!--                        <ul class="dropdown-menu border-0">-->
+                    <!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
+                    <!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
+                    <!--                            <li>-->
+                    <!--                                <hr class="dropdown-divider">-->
+                    <!--                            </li>-->
+                    <!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
+                    <!--                        </ul>-->
+                    <!--                    </li>-->
+                    <!--                </ul>-->
+                    <!--                <form class="d-flex mt-3" role="search">-->
+                    <!--                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">-->
+                    <!--                    <button class="btn btn-outline-success" type="submit">Search</button>-->
+                    <!--                </form>-->
+            </div>
+        </div>
+
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarSnaps"
+             aria-labelledby="offcanvasNavbarSnapsLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasNavbarSnapsLabel">Snaps</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                    <!--                    <li class="nav-item">-->
+                    <!--                        <a class="nav-link active" aria-current="page" href="#">Home</a>-->
+                    <!--                    </li>-->
+                    <!--                    <li class="nav-item">-->
+                    <!--                        <a class="nav-link" href="#">Link</a>-->
+                    <!--                    </li>-->
+                    <li class="nav-item">
+                        <div class="card mb-2">
+                            <img src="https://placekitten.com/g/300/200" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title
+                                ">Special title treatment</h5>
+                                <p class="card-text">With supporting text below as a natural lead-in to additional
+                                    content.</p>
+                                <a href="#" class="btn btn-primary">Go somewhere</a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="card mb-2">
+                            <img src="https://placekitten.com/g/300/201" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title
+                                ">Special title treatment</h5>
+                                <p class="card-text">With supporting text below as a natural lead-in to additional
+                                    content.</p>
+                                <a href="#" class="btn btn-primary">Go somewhere</a>
+                            </div>
+                        </div>
+                    </li>
+
+                </ul>
+                <!--                <form class="d-flex mt-3" role="search">-->
+                <!--                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">-->
+                <!--                    <button class="btn btn-outline-success" type="submit">Search</button>-->
+                <!--                </form>-->
+            </div>
+        </div>
+
+<!--        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarLaps"-->
+<!--             aria-labelledby="offcanvasNavbarLapsLabel">-->
+<!--            <div class="offcanvas-header">-->
+<!--                <h5 class="offcanvas-title" id="offcanvasNavbarLapsLabel">Laps</h5>-->
+<!--                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>-->
+<!--            </div>-->
+<!--            <div class="offcanvas-body">-->
+<!--                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">-->
+<!--                    &lt;!&ndash;                    <li class="nav-item">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <a class="nav-link active" aria-current="page" href="#">Home</a>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    </li>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <li class="nav-item">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <a class="nav-link" href="#">Link</a>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    </li>&ndash;&gt;-->
+<!--                    <li class="nav-item dropdown">-->
+<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
+<!--                           aria-expanded="false">-->
+<!--                            Services-->
+<!--                        </a>-->
+<!--                        <ul class="dropdown-menu border-0">-->
+<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
+<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
+<!--                            <li>-->
+<!--                                <hr class="dropdown-divider">-->
+<!--                            </li>-->
+<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
+<!--                        </ul>-->
+<!--                    </li>-->
+<!--                    <li class="nav-item dropdown">-->
+<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
+<!--                           aria-expanded="false">-->
+<!--                            Snaps-->
+<!--                        </a>-->
+<!--                        <ul class="dropdown-menu border-0">-->
+<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
+<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
+<!--                            <li>-->
+<!--                                <hr class="dropdown-divider">-->
+<!--                            </li>-->
+<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
+<!--                        </ul>-->
+<!--                    </li>-->
+<!--                    <li class="nav-item dropdown">-->
+<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
+<!--                           aria-expanded="false">-->
+<!--                            Laps-->
+<!--                        </a>-->
+<!--                        <ul class="dropdown-menu border-0">-->
+<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
+<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
+<!--                            <li>-->
+<!--                                <hr class="dropdown-divider">-->
+<!--                            </li>-->
+<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
+<!--                        </ul>-->
+<!--                    </li>-->
+<!--                </ul>-->
+<!--                &lt;!&ndash;                <form class="d-flex mt-3" role="search">&ndash;&gt;-->
+<!--                &lt;!&ndash;                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">&ndash;&gt;-->
+<!--                &lt;!&ndash;                    <button class="btn btn-outline-success" type="submit">Search</button>&ndash;&gt;-->
+<!--                &lt;!&ndash;                </form>&ndash;&gt;-->
+<!--            </div>-->
+<!--        </div>-->
+
+    </div>
+</nav>
+<div id="map"></div>
+</body>
 </html>

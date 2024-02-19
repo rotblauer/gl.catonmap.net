@@ -64,7 +64,7 @@ const paint_density = {
     'circle-opacity': [
         'case',
         ['!', ['has', 'point_count']], 0.1,
-        ['interpolate', ['exponential', 0.99], ['get', 'point_count'], 0, 0, 824232, 1],
+        ['interpolate', ['exponential', 0.995], ['get', 'point_count'], 0, 0, 824232, 1],
     ],
     'circle-color': ['interpolate', ['exponential', 0.999], ['get', 'point_count'], 1, ['to-color', '#014FE7'], 824232, ['to-color', '#E74500']],
 }

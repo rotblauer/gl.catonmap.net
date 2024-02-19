@@ -3,11 +3,26 @@
   src: url('../fonts/Inter.ttf');
 }
 
+// Import all of Bootstrap's CSS
+//var(--bs-offcanvas-width, 800px);
+@import "bootstrap/scss/bootstrap";
+
+
 @import 'maplibre-gl/dist/maplibre-gl.css';
 @import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
+
 @import 'variables';
 @import 'scaffolding';
 
 html, body, #map {
   height: 100%;
 }
+
+.maplibregl-ctrl-top-right, .maplibregl-ctrl-top-left {
+  top: 55px;
+}
+
+.navbar.fixed-top {
+  background-color: #FFFFFF00;
+}
+
