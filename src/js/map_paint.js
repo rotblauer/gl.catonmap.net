@@ -10,8 +10,8 @@ export function Activity()  {
             'Running', '#028532',
             'Bike', '#3112f6',
             'Automotive', '#be00ff',
-            'Unknown', '#00000000',
-            /* else */ '#00000000',
+            'Unknown', '#000000',
+            /* else */ '#000000',
         ],
         'circle-radius': 1.6,
         'circle-opacity': 1,
@@ -22,7 +22,7 @@ export function CatColor(catAlias) {
     var _default = {
         'circle-radius': 1.42,
         'circle-opacity': 1,
-        'circle-color': '#00000000',
+        'circle-color': '#000000',
     };
     switch (catAlias) {
         case 'rye':
@@ -32,6 +32,16 @@ export function CatColor(catAlias) {
         case 'ia':
             return Object.assign(_default, {
                 'circle-color': '#ee1f1f',
+            });
+        case 'edge':
+        case 'devop':
+            return Object.assign(_default, {
+                'circle-color': [
+                    'case',
+                    ['in', 'rye', ['downcase', ['get', 'Name']]], '#1f2aee',
+                    ['in', 'moto', ['downcase', ['get', 'Name']]], '#ee1f1f',
+                    '#000000'
+                ]
             });
     }
     return _default;

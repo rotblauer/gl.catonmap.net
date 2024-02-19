@@ -32,27 +32,27 @@ import {Density, Activity, CatColor} from './map_paint';
 
 const servicePrototype = {
     greet() {
-        console.log(`hello, my name is ${this.name}!`);
+        console.log(`hello, my name is ${this.uid}!`);
     },
 
     appendHTML(map) {
         let $serviceOptions = $(`
-        <li id="layer-options-${this.name}" class="nav-item dropdown">
+        <li id="layer-options-${this.uid}" class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                aria-expanded="false">
-                ${this.name}
+                ${this.uid}
             </a>
             <ul class="dropdown-menu border-0 show">
                 
                 <div class="form-check form-switch">
-                    <label class="form-check-label" for="flexSwitchCheckLayer-${this.name}-CatColor">Cat Color</label>
+                    <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-CatColor">Cat Color</label>
                 </div>
                 
                 <div class="form-check form-switch">
-                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.name}-Activity">Activity</label>
+                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Activity">Activity</label>
                 </div>
                 <div class="form-check form-switch">
-                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.name}-Density">Density</label>
+                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Density">Density</label>
                 </div>
                 
 <!--                <li>-->
@@ -82,21 +82,21 @@ const servicePrototype = {
             }
         }
 
-        const $catColorSwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.name}-CatColor">`);
+        const $catColorSwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-CatColor">`);
         $catColorSwitcher.change(checkboxLayerSwitcherFunction(this, $catColorSwitcher, "catcolor"));
         $serviceOptions.find(".form-check:eq(0)").prepend($catColorSwitcher);
 
-        const $catActivitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.name}-Activity">`);
+        const $catActivitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Activity">`);
         $catActivitySwitcher.change(checkboxLayerSwitcherFunction(this, $catActivitySwitcher, "activity"))
         $serviceOptions.find(".form-check:eq(1)").prepend($catActivitySwitcher);
 
-        const $catDensitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.name}-Density">`);
+        const $catDensitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Density">`);
         $catDensitySwitcher.change(checkboxLayerSwitcherFunction(this, $catDensitySwitcher, "density"))
         $serviceOptions.find(".form-check:eq(2)").prepend($catDensitySwitcher);
     },
 
     addSourceToMap(map) {
-        map.addSource(`cattracks-${this.name}`, {
+        map.addSource(`cattracks-${this.uid}`, {
             type: 'vector',
             tiles: this.tiles,
             minzoom: this.minzoom,
@@ -107,15 +107,15 @@ const servicePrototype = {
 
     addLayerToMap(map, layerType) {
         let layerOpts = {
-            'id': `cattracks-${this.name}-${layerType}`,
+            'id': `cattracks-${this.uid}-${layerType}`,
             'type': 'circle',
-            'source': `cattracks-${this.name}`,
+            'source': `cattracks-${this.uid}`,
             'source-layer': `${this.vector_layers[0].id}`,
             'paint': null,
         };
         switch (layerType) {
             case "catcolor":
-                layerOpts.paint = CatColor(this.name.replace(/\.level\-23/g, ''));
+                layerOpts.paint = CatColor(this.uid.replace(/\.level\-23/g, ''));
                 break;
             case "activity":
                 layerOpts.paint = Activity();
@@ -128,7 +128,7 @@ const servicePrototype = {
     },
 
     removeLayerFromMap(map, layerType) {
-        map.removeLayer(`cattracks-${this.name}-${layerType}`);
+        map.removeLayer(`cattracks-${this.uid}-${layerType}`);
     },
 
     getLayerAttribute(attribute) {
@@ -141,6 +141,9 @@ const servicePrototype = {
 };
 
 export function Service(serviceData) {
+    // "https://mb.tiles.catonmap.info/services/edge/map" -> 'edge'
+    this.uid = serviceData.map.replace(/\/map$/g, '').split("/").pop();
+
     this.antimeridian_adjusted_bounds = serviceData.antimeridian_adjusted_bounds;
     this.bounds = serviceData.bounds;
     this.center = serviceData.center;

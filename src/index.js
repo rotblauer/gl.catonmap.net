@@ -3,7 +3,6 @@
  */
 
 
-
 // Test import of styles
 import '@/styles/index.scss'
 
@@ -20,27 +19,27 @@ import { Tooltip, Toast, Popover } from 'bootstrap'
  */
 
 import map from '@/js/map'
-import { Service } from '@/js/services'
+import {Service} from '@/js/services'
 
-let servicesEnabled = [/ia\./, /rye\./];
-function isServiceEnabled(service) {
-    if (/\+/.test(service.name)) {
+let servicesWhitelistURLs = [/ia\./, /rye\./, /edge/, /devop/];
+
+function isServiceEnabled(serviceSummary) {
+    if (/\+/.test(serviceSummary.url)) {
         return false;
     }
-    for (let s of servicesEnabled) {
-        if (s.test(service.name)) {
+    for (let s of servicesWhitelistURLs) {
+        if (s.test(serviceSummary.url)) {
             return true;
         }
     }
     return false;
 }
 
-fetch("https://mb.tiles.catonmap.info/services").
-then((res) => {
+fetch("https://mb.tiles.catonmap.info/services").then((res) => {
     console.log("res", res);
     return res.json();
-}).then((data) => {
-    console.log("data", data);
+}).then((serviceSummaries) => {
+    console.log("data", serviceSummaries);
     /*
     [{
         "imageType": "pbf",
@@ -48,33 +47,31 @@ then((res) => {
         "url": "https://mb.tiles.catonmap.info/services/ia.level-23",
     }, ...]
      */
-    for (let service of data) {
-        console.log("service", service);
-        if (!isServiceEnabled(service)) {
-            continue;
-        }
-        fetch(service.url).
-        then((res) => {
-            console.log("res", res);
-            return res.json();
-        }).then((data) => {
-            console.log("data", data);
-            const service = new Service(data);
-            service.greet();
-            service.appendHTML(map);
-            service.addSourceToMap(map);
-            // service.addLayerToMap(map);
+    serviceSummaries = serviceSummaries.filter((serviceSummary) => {
+        return isServiceEnabled(serviceSummary);
+    });
 
-        }).catch((err) => {
-            console.error("err", err);
-        });
-    }
+    return Promise.all(serviceSummaries.map(ss => fetch(ss.url))).then(responses =>
+        Promise.all(responses.map(res => res.json()))
+    )
+}).then((services) => {
+    services.sort((a, b) => {
+        const serviceA = new Service(a);
+        const serviceB = new Service(b);
+        return serviceB.tilestats.layers[0].count - serviceA.tilestats.layers[0].count;
+    })
+    services.forEach((service) => {
+        service = new Service(service);
+        service.greet();
+        service.appendHTML(map);
+        service.addSourceToMap(map);
+        // service.addLayerToMap(map);
+    })
 }).catch((err) => {
     console.error("err", err);
 });
 
-fetch("https://api.catonmap.info/lastknown").
-then((res) => {
+fetch("https://api.catonmap.info/lastknown").then((res) => {
     console.log("res", res);
     return res.json();
 }).then((data) => {
@@ -83,8 +80,7 @@ then((res) => {
     console.error("err", err);
 });
 
-fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000) - 60*60*24*30}`).
-then((res) => {
+fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30}`).then((res) => {
     console.log("res", res);
     return res.json();
 }).then((data) => {
