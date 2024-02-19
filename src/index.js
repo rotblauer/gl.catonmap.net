@@ -85,8 +85,42 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
     return res.json();
 }).then((data) => {
     console.log("data", data);
+    data = data.filter((d) => {
+        return typeof d.properties.imgS3 !== "undefined";
+    })
     data.sort((a, b) => {
-        return a.properties.UnixTime - b.properties.UnixTime;
+        return b.properties.UnixTime - a.properties.UnixTime;
+    });
+    data.forEach((d) => {
+        let $cardImg = $("<img>").
+            attr("src", `https://s3.us-east-2.amazonaws.com/${d.properties.imgS3}`).
+            addClass("card-img-top");
+        let $listElement = $(`
+            <li class="nav-item">
+                <div class="card mb-2">
+<!--                    <img src="https://placekitten.com/g/300/201" class="card-img-top" alt="...">-->
+                    <div class="card-body">
+                      <div class="row justify-content-between">
+                        <div class="col">
+                            <p class="card-text text-start">
+                                <span>${d.properties.Name}</span>
+                            </p>
+                        </div>
+                        <div class="col">
+                            <p class="card-text text-end">
+                                <span class="text-end">${new Date(d.properties.Time).toLocaleString()}</span>
+                            </p>
+                        </div>
+                      </div>
+
+
+                    </div>
+                </div>
+            </li>
+        `);
+        $listElement.find(".card").prepend($cardImg);
+        $("#catsnaps-list").append($listElement);
+
     });
 }).catch((err) => {
     console.error("err", err);
