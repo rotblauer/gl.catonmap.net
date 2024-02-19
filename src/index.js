@@ -10,6 +10,9 @@ import '@/styles/index.scss'
 import * as bootstrap from 'bootstrap'
 import $ from 'jquery'
 
+// Import bootstrap icons
+import 'bootstrap-icons/font/bootstrap-icons.css'
+
 /*
 You can also import JavaScript plugins individually as needed to keep bundle sizes down:
 import Alert from 'bootstrap/js/dist/alert'
@@ -22,6 +25,9 @@ import maplibregl from 'maplibre-gl'
 import map from '@/js/map'
 import {Service} from '@/js/services'
 import {isMobileDevice} from "@/js/device";
+import {getState, setState} from "@/js/state";
+
+console.debug("state", getState());
 
 let servicesWhitelistURLs = [/ia\./, /rye\./, /edge/, /devop/];
 
@@ -37,6 +43,7 @@ function isServiceEnabled(serviceSummary) {
     return false;
 }
 
+let globalServices = [];
 fetch("https://mb.tiles.catonmap.info/services").then((res) => {
     console.log("res", res);
     return res.json();
@@ -68,6 +75,8 @@ fetch("https://mb.tiles.catonmap.info/services").then((res) => {
         service.appendHTML(map);
         service.addSourceToMap(map);
         // service.addLayerToMap(map);
+        service.initFromState(map);
+        globalServices.push(service);
     })
 }).catch((err) => {
     console.error("err", err);
@@ -170,12 +179,15 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
         $marker.css("background-size", "contain");
         $marker.css("width", `30px`);
         $marker.css("height", `30px`);
+        if (!getState().snapmarkers) $marker.css("display", "none");
 
         // add marker to map
         let marker = new maplibregl.Marker({element: $marker[0]})
             .setLngLat(snap.geometry.coordinates)
-            .setPopup(popup)
-            .addTo(map);
+            .setPopup(popup);
+
+        marker.addTo(map);
+
 
         // marker.on('click', () => {
         //     console.debug("popup.isOpen()", popup.isOpen());
@@ -188,4 +200,50 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
     console.error("err", err);
 });
 
+function addCatsnapMarkerToggleControl() {
+    let $toggle = $(`
+        <div id="catsnap-marker-toggle" class="maplibregl-ctrl maplibregl-ctrl-group">
+            <button class="maplibregl-ctrl-icon btn" title="Toggle Catsnap Markers">
+                <i class="bi-camera"></i>
+            </button>
+        </div>
+    `);
 
+    if (getState().snapmarkers) $toggle.find("button").addClass("btn-outline-success");
+
+    $toggle.on("click", () => {
+        const newMarkerState = getState().snapmarkers ? null : true; // delete the param if false
+        setState("snapmarkers", newMarkerState);
+        if (newMarkerState) {
+            $toggle.find("button").addClass("btn-outline-success");
+        } else {
+            $toggle.find("button").removeClass("btn-outline-success");
+        }
+
+        let markers = document.getElementsByClassName("snap-marker");
+        for (let marker of markers) {
+            marker.style.display = newMarkerState ? "block" : "none";
+        }
+    });
+    $(`.maplibregl-ctrl-top-right`).append($toggle[0]);
+    // map.addControl({
+    //     position: 'top-right',
+    //     element: $toggle[0]
+    // });
+}
+
+addCatsnapMarkerToggleControl();
+
+$(`.mapstyles-select`).on("change", (e) => {
+    const style = e.target.value;
+    setState("style", style);
+    map.setStyle(style);
+    setState("style", style);
+    setTimeout(() => {
+        globalServices.forEach((service) => {
+            service.addSourceToMap(map);
+            service.initFromState(map);
+        })
+    }, 500);
+
+});

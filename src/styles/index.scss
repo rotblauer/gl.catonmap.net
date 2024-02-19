@@ -39,4 +39,9 @@ html, body, #map {
   padding: 0;
 }
 
-
+.mapstyles-select {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  z-index: 1000;
+}

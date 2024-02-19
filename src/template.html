@@ -17,33 +17,34 @@
     <div class="container-fluid">
         <a class="navbar-brand bg-body-tertiary" href="#">Cat Tracks</a>
 
-        <div class="align-items-end">
-            <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
-                    data-bs-target="#offcanvasNavbarServices" aria-controls="offcanvasNavbarServices"
-                    aria-label="Toggle navigation">
-                <span>Tracks</span>
-                            <span class="navbar-toggler-icon" style="font-size: small;"></span>
-                <!--                            <span class="navbar-toggler-icon"></span>-->
-                <!--                <span><i class="bi bi-0-circle"></i></span>-->
-                <!--                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-0-circle" viewBox="0 0 16 16">-->
-                <!--                    <path d="M7.988 12.158c-1.851 0-2.941-1.57-2.941-3.99V7.84c0-2.408 1.101-3.996 2.965-3.996 1.857 0 2.935 1.57 2.935 3.996v.328c0 2.408-1.101 3.99-2.959 3.99M8 4.951c-1.008 0-1.629 1.09-1.629 2.895v.31c0 1.81.627 2.895 1.629 2.895s1.623-1.09 1.623-2.895v-.31c0-1.8-.621-2.895-1.623-2.895"></path>-->
-                <!--                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8"></path>-->
-                <!--                </svg>-->
-            </button>
+        <div class="d-flex flex-row-reverse">
             <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
                     data-bs-target="#offcanvasNavbarSnaps" aria-controls="offcanvasNavbarSnaps"
                     aria-label="Toggle navigation">
                 <!--            <span class="navbar-toggler-icon"></span>-->
-                <span class="">Snaps</span>
-                            <span class="navbar-toggler-icon" style="font-size: small;"></span>
+                <i class="bi-camera-fill"></i>
+                <i class="bi-three-dots-vertical"></i>
+                <!--                <span class="navbar-toggler-icon" ></span>-->
             </button>
-<!--            <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"-->
-<!--                    data-bs-target="#offcanvasNavbarLaps" aria-controls="offcanvasNavbarLaps"-->
-<!--                    aria-label="Toggle navigation">-->
-<!--                &lt;!&ndash;            <span class="navbar-toggler-icon"></span>&ndash;&gt;-->
-<!--                <span class="">Laps</span>-->
-<!--            </button>-->
+            <div class="d-flex pe-1">
+                <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasNavbarServices" aria-controls="offcanvasNavbarServices"
+                        aria-label="Toggle navigation">
+                    <!--                <i class="bi-map-fill"></i>-->
+                    <i class="bi-toggles"></i>
+                    <i class="bi-three-dots-vertical"></i>
+                    <!--                <span class="navbar-toggler-icon" ></span>-->
+                </button>
+            </div>
+            <!--            <form class="d-flex pe-3">-->
+            <!--                <div class="form-check form-switch">-->
+            <!--                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckSnapMarkers"-->
+            <!--                           checked>-->
+            <!--                    <label class="form-check-label" for="flexSwitchCheckSnapMarkers">Cat Snap Markers</label>-->
+            <!--                </div>-->
+            <!--            </form>-->
         </div>
+
 
         <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarServices"
              aria-labelledby="offcanvasNavbarServicesLabel">
@@ -53,63 +54,10 @@
             </div>
             <div class="offcanvas-body">
                 <ul id="services-list" class="navbar-nav justify-content-end flex-grow-1 pe-3"></ul>
-                    <!--                    <li class="nav-item">-->
-                    <!--                        <a class="nav-link active" aria-current="page" href="#">Home</a>-->
-                    <!--                    </li>-->
-                    <!--                    <li class="nav-item">-->
-                    <!--                        <a class="nav-link" href="#">Link</a>-->
-                    <!--                    </li>-->
-<!--                    <li class="nav-item dropdown">-->
-<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
-<!--                           aria-expanded="false">-->
-<!--                            ia.level-23-->
-<!--                        </a>-->
-<!--                        <ul class="dropdown-menu border-0">-->
-<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
-<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
-<!--                            <li>-->
-<!--                                <hr class="dropdown-divider">-->
-<!--                            </li>-->
-<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
-<!--                        </ul>-->
-<!--                    </li>-->
-<!--                    <li class="nav-item dropdown">-->
-<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
-<!--                           aria-expanded="false">-->
-<!--                            rye.level-23-->
-<!--                        </a>-->
-<!--                        <ul class="dropdown-menu border-0">-->
-<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
-<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
-<!--                            <li>-->
-<!--                                <hr class="dropdown-divider">-->
-<!--                            </li>-->
-<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
-<!--                        </ul>-->
-<!--                    </li>-->
-                    <!--                    <li class="nav-item dropdown">-->
-                    <!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
-                    <!--                           aria-expanded="false">-->
-                    <!--                            Laps-->
-                    <!--                        </a>-->
-                    <!--                        <ul class="dropdown-menu border-0">-->
-                    <!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
-                    <!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
-                    <!--                            <li>-->
-                    <!--                                <hr class="dropdown-divider">-->
-                    <!--                            </li>-->
-                    <!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
-                    <!--                        </ul>-->
-                    <!--                    </li>-->
-                    <!--                </ul>-->
-                    <!--                <form class="d-flex mt-3" role="search">-->
-                    <!--                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">-->
-                    <!--                    <button class="btn btn-outline-success" type="submit">Search</button>-->
-                    <!--                </form>-->
             </div>
         </div>
 
-        <div class="offcanvas offcanvas-end show" tabindex="-1" id="offcanvasNavbarSnaps"
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarSnaps"
              aria-labelledby="offcanvasNavbarSnapsLabel">
             <div class="offcanvas-header">
                 <h5 class="offcanvas-title" id="offcanvasNavbarSnapsLabel">📸 Cat Snaps</h5>
@@ -117,110 +65,31 @@
             </div>
             <div class="offcanvas-body">
                 <ul id="catsnaps-list" class="navbar-nav justify-content-end flex-grow-1 pe-3"></ul>
-                    <!--                    <li class="nav-item">-->
-                    <!--                        <a class="nav-link active" aria-current="page" href="#">Home</a>-->
-                    <!--                    </li>-->
-                    <!--                    <li class="nav-item">-->
-                    <!--                        <a class="nav-link" href="#">Link</a>-->
-                    <!--                    </li>-->
-<!--                    <li class="nav-item">-->
-<!--                        <div class="card mb-2">-->
-<!--                            <img src="https://placekitten.com/g/300/200" class="card-img-top" alt="...">-->
-<!--                            <div class="card-body">-->
-<!--                                <h5 class="card-title-->
-<!--                                ">Special title treatment</h5>-->
-<!--                                <p class="card-text">With supporting text below as a natural lead-in to additional-->
-<!--                                    content.</p>-->
-<!--                                <a href="#" class="btn btn-primary">Go somewhere</a>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </li>-->
-<!--                    <li class="nav-item">-->
-<!--                        <div class="card mb-2">-->
-<!--                            <img src="https://placekitten.com/g/300/201" class="card-img-top" alt="...">-->
-<!--                            <div class="card-body">-->
-<!--                                <h5 class="card-title-->
-<!--                                ">Special title treatment</h5>-->
-<!--                                <p class="card-text">With supporting text below as a natural lead-in to additional-->
-<!--                                    content.</p>-->
-<!--                                <a href="#" class="btn btn-primary">Go somewhere</a>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </li>-->
-
-                <!--                <form class="d-flex mt-3" role="search">-->
-                <!--                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">-->
-                <!--                    <button class="btn btn-outline-success" type="submit">Search</button>-->
-                <!--                </form>-->
             </div>
         </div>
-
-<!--        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarLaps"-->
-<!--             aria-labelledby="offcanvasNavbarLapsLabel">-->
-<!--            <div class="offcanvas-header">-->
-<!--                <h5 class="offcanvas-title" id="offcanvasNavbarLapsLabel">Laps</h5>-->
-<!--                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>-->
-<!--            </div>-->
-<!--            <div class="offcanvas-body">-->
-<!--                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">-->
-<!--                    &lt;!&ndash;                    <li class="nav-item">&ndash;&gt;-->
-<!--                    &lt;!&ndash;                        <a class="nav-link active" aria-current="page" href="#">Home</a>&ndash;&gt;-->
-<!--                    &lt;!&ndash;                    </li>&ndash;&gt;-->
-<!--                    &lt;!&ndash;                    <li class="nav-item">&ndash;&gt;-->
-<!--                    &lt;!&ndash;                        <a class="nav-link" href="#">Link</a>&ndash;&gt;-->
-<!--                    &lt;!&ndash;                    </li>&ndash;&gt;-->
-<!--                    <li class="nav-item dropdown">-->
-<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
-<!--                           aria-expanded="false">-->
-<!--                            Services-->
-<!--                        </a>-->
-<!--                        <ul class="dropdown-menu border-0">-->
-<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
-<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
-<!--                            <li>-->
-<!--                                <hr class="dropdown-divider">-->
-<!--                            </li>-->
-<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
-<!--                        </ul>-->
-<!--                    </li>-->
-<!--                    <li class="nav-item dropdown">-->
-<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
-<!--                           aria-expanded="false">-->
-<!--                            Snaps-->
-<!--                        </a>-->
-<!--                        <ul class="dropdown-menu border-0">-->
-<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
-<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
-<!--                            <li>-->
-<!--                                <hr class="dropdown-divider">-->
-<!--                            </li>-->
-<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
-<!--                        </ul>-->
-<!--                    </li>-->
-<!--                    <li class="nav-item dropdown">-->
-<!--                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"-->
-<!--                           aria-expanded="false">-->
-<!--                            Laps-->
-<!--                        </a>-->
-<!--                        <ul class="dropdown-menu border-0">-->
-<!--                            <li><a class="dropdown-item" href="#">Action</a></li>-->
-<!--                            <li><a class="dropdown-item" href="#">Another action</a></li>-->
-<!--                            <li>-->
-<!--                                <hr class="dropdown-divider">-->
-<!--                            </li>-->
-<!--                            <li><a class="dropdown-item" href="#">Something else here</a></li>-->
-<!--                        </ul>-->
-<!--                    </li>-->
-<!--                </ul>-->
-<!--                &lt;!&ndash;                <form class="d-flex mt-3" role="search">&ndash;&gt;-->
-<!--                &lt;!&ndash;                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">&ndash;&gt;-->
-<!--                &lt;!&ndash;                    <button class="btn btn-outline-success" type="submit">Search</button>&ndash;&gt;-->
-<!--                &lt;!&ndash;                </form>&ndash;&gt;-->
-<!--            </div>-->
-<!--        </div>-->
-
     </div>
 </nav>
+<select class="mapstyles-select">
+    <option value="https://api.maptiler.com/maps/streets-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">Streets</option>
+    <!--        <option value="STREETS.DARK" selected>STREETS.DARK</option>-->
+    <!--        <option value="STREETS.LIGHT">STREETS.LIGHT</option>-->
+    <option value="https://api.maptiler.com/maps/streets-v2-pastel/style.json?key=XrsT3wNTcIE6gABWxyV5">Pastel Streets
+    </option>
+    <option value="https://api.maptiler.com/maps/openstreetmap/style.json?key=XrsT3wNTcIE6gABWxyV5">OpenStreetMap
+    </option>
+    <option value="https://api.maptiler.com/maps/outdoor-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">Outdoor</option>
+    <option value="https://api.maptiler.com/maps/topo-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">Topo</option>
+    <option value="https://api.maptiler.com/maps/winter-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">Winter</option>
+    <!--    <option value="WINTER">WINTER</option>-->
+    <option value="https://api.maptiler.com/maps/satellite/style.json?key=XrsT3wNTcIE6gABWxyV5">Satellite</option>
+    <!--    <option value="HYBRID">HYBRID</option>-->
+    <option value="https://api.maptiler.com/maps/backdrop/style.json?key=XrsT3wNTcIE6gABWxyV5">Backdrop</option>
+    <option value="https://api.maptiler.com/maps/dataviz/style.json?key=XrsT3wNTcIE6gABWxyV5">Dataviz</option>
+    <!--        <option value="DATAVIZ.DARK">DATAVIZ.DARK</option>-->
+    <!--        <option value="DATAVIZ.LIGHT">DATAVIZ.LIGHT</option>-->
+    <!--    <option value="YOUR_CUSTOM_MAP_ID_1">Custom map name 1</option>-->
+    <!--    <option value="YOUR_CUSTOM_MAP_ID_2">Custom map name 2</option>-->
+</select>
 <div id="map"></div>
 </body>
 </html>

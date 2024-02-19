@@ -5,18 +5,40 @@
 // Test import of a JavaScript module
 import { geocoder } from '@/js/geocoder'
 import maplibregl from 'maplibre-gl'
+import { getState, setState } from "@/js/state";
 
+let initialState = getState();
 const map = new maplibregl.Map({
     container: 'map', // container id
-    style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL',
-    center: [-93, 45], // starting position
-    zoom: 9 // starting zoom
+    style: initialState.style || 'https://api.maptiler.com/maps/streets/style.json?key=XrsT3wNTcIE6gABWxyV5',
+    center: [initialState.lng, initialState.lat], // starting position
+    zoom: initialState.zoom, // starting zoom
+    pitch: initialState.pitch,
+    bearing: initialState.bearing,
+    maxPitch: 60,
 });
 
 // Add zoom and rotation controls to the map.
 geocoder.addToMap(map);
 map.addControl(new maplibregl.NavigationControl());
+// map.addControl(new maplibregl.TerrainControl({
+//     source: "terrain"
+// }));
+// const mapHash = new maplibregl.Hash();
+// mapHash.addTo(map);
 
+map.on('moveend' , () => {
+    setState('lat', map.getCenter().lat.toFixed(6));
+    setState('lng', map.getCenter().lng.toFixed(6));
+    setState('zoom', map.getZoom().toFixed(1));
+    // setState('style', map.getStyle());
+    setState('pitch', map.getPitch());
+    setState('bearing', map.getBearing());
+});
+
+map.on('zoomend', () => {
+    setState('zoom', map.getZoom().toFixed(1));
+});
 
 map.on('load', () => {
     // map.addSource('cattracks-rye', {

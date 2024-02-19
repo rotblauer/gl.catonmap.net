@@ -52,6 +52,7 @@
     "@popperjs/core": "^2.11.8",
     "@turf/turf": "^6.5.0",
     "bootstrap": "^5.3.2",
+    "bootstrap-icons": "^1.11.3",
     "jquery": "^3.7.1",
     "maplibre-gl": "^4.0.1"
   }

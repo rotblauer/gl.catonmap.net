@@ -29,6 +29,7 @@ version	"2"
 
 import $ from 'jquery';
 import {Density, Activity, CatColor} from './map_paint';
+import {getState, setState} from "@/js/state";
 
 const servicePrototype = {
     greet() {
@@ -36,6 +37,7 @@ const servicePrototype = {
     },
 
     appendHTML(map) {
+        const initialState = getState();
         let $serviceOptions = $(`
         <li id="layer-options-${this.uid}" class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
@@ -47,7 +49,6 @@ const servicePrototype = {
                 <div class="form-check form-switch">
                     <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-CatColor">Cat Color</label>
                 </div>
-                
                 <div class="form-check form-switch">
                   <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Activity">Activity</label>
                 </div>
@@ -72,7 +73,7 @@ const servicePrototype = {
         $("#services-list").append($serviceOptions);
 
         function checkboxLayerSwitcherFunction(_this, $element, layerType) {
-            return function() {
+            return function () {
                 const isChecked = $element.prop('checked');
                 if (isChecked) {
                     _this.addLayerToMap(map, layerType);
@@ -82,15 +83,18 @@ const servicePrototype = {
             }
         }
 
-        const $catColorSwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-CatColor">`);
+        const colorEnabled = initialState[`layer-${this.uid}-catcolor`];
+        const $catColorSwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-CatColor" ${colorEnabled ? 'checked' : ''}>`);
         $catColorSwitcher.change(checkboxLayerSwitcherFunction(this, $catColorSwitcher, "catcolor"));
         $serviceOptions.find(".form-check:eq(0)").prepend($catColorSwitcher);
 
-        const $catActivitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Activity">`);
+        const activityEnabled = initialState[`layer-${this.uid}-activity`];
+        const $catActivitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Activity" ${activityEnabled ? 'checked' : ''} >`);
         $catActivitySwitcher.change(checkboxLayerSwitcherFunction(this, $catActivitySwitcher, "activity"))
         $serviceOptions.find(".form-check:eq(1)").prepend($catActivitySwitcher);
 
-        const $catDensitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Density">`);
+        const densityEnabled = initialState[`layer-${this.uid}-density`];
+        const $catDensitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Density" ${densityEnabled ? 'checked' : ''}>`);
         $catDensitySwitcher.change(checkboxLayerSwitcherFunction(this, $catDensitySwitcher, "density"))
         $serviceOptions.find(".form-check:eq(2)").prepend($catDensitySwitcher);
     },
@@ -124,11 +128,27 @@ const servicePrototype = {
                 layerOpts.paint = Density(this);
                 break;
         }
+        if (map.getLayer(layerOpts.id)) map.removeLayer(layerOpts.id);
         map.addLayer(layerOpts);
+        setState(`layer-${this.uid}-${layerType}`, true);
     },
 
     removeLayerFromMap(map, layerType) {
         map.removeLayer(`cattracks-${this.uid}-${layerType}`);
+        setState(`layer-${this.uid}-${layerType}`, null);
+    },
+
+    initFromState(map) {
+        const state = getState();
+        if (state[`layer-${this.uid}-catcolor`]) {
+            this.addLayerToMap(map, "catcolor");
+        }
+        if (state[`layer-${this.uid}-activity`]) {
+            this.addLayerToMap(map, "activity");
+        }
+        if (state[`layer-${this.uid}-density`]) {
+            this.addLayerToMap(map, "density");
+        }
     },
 
     getLayerAttribute(attribute) {
