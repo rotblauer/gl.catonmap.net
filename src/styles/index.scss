@@ -22,6 +22,11 @@ html, body, #map {
   top: 55px;
 }
 
+.maplibregl-popup-content {
+  //background: #FFFFFF88 !important;
+  padding: 0 !important;
+}
+
 .navbar.fixed-top {
   background-color: #FFFFFF00;
 }

@@ -18,8 +18,10 @@ import Alert from 'bootstrap/js/dist/alert'
 import { Tooltip, Toast, Popover } from 'bootstrap'
  */
 
+import maplibregl from 'maplibre-gl'
 import map from '@/js/map'
 import {Service} from '@/js/services'
+import {isMobileDevice} from "@/js/device";
 
 let servicesWhitelistURLs = [/ia\./, /rye\./, /edge/, /devop/];
 
@@ -91,34 +93,62 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
     data.sort((a, b) => {
         return b.properties.UnixTime - a.properties.UnixTime;
     });
-    data.forEach((d) => {
-        let $cardImg = $("<img>").
-            attr("src", `https://s3.us-east-2.amazonaws.com/${d.properties.imgS3}`).
-            addClass("card-img-top");
-        let $listElement = $(`
-            <li class="nav-item">
-                <div class="card mb-2">
-<!--                    <img src="https://placekitten.com/g/300/201" class="card-img-top" alt="...">-->
-                    <div class="card-body">
-                      <div class="row justify-content-between">
-                        <div class="col">
-                            <p class="card-text text-start">
-                                <span>${d.properties.Name}</span>
-                            </p>
-                        </div>
-                        <div class="col">
-                            <p class="card-text text-end">
-                                <span class="text-end">${new Date(d.properties.Time).toLocaleString()}</span>
-                            </p>
-                        </div>
-                      </div>
 
+    let popupsOnMap = [];
 
+    data.forEach((snap) => {
+        const s3URL = `https://s3.us-east-2.amazonaws.com/${snap.properties.imgS3}`;
+        const localTime = new Date(snap.properties.Time).toLocaleString();
+
+        let $cardImg = $("<img>").attr("src", s3URL).addClass("card-img-top");
+        let $card = $(`
+            <div class="card mb-2">
+                <div class="card-body">
+                  <div class="row justify-content-between">
+                    <div class="col">
+                        <p class="card-text text-start">
+                            <span>${snap.properties.Name}</span>
+                        </p>
                     </div>
+                    <div class="col">
+                        <p class="card-text text-end">
+                            <span class="text-end">${localTime}</span>
+                        </p>
+                    </div>
+                  </div>
+    
+    
                 </div>
-            </li>
-        `);
-        $listElement.find(".card").prepend($cardImg);
+            </div>
+        `)
+        $card.prepend($cardImg);
+
+        let $popupContent = $card.clone().removeClass("mb-2").addClass("m-0");
+        $popupContent.find("img").wrap($("<a>").attr("href", s3URL).attr("target", "_blank"));
+        const popup = new maplibregl.Popup({
+            closeOnClick: true,
+            closeButton: false,
+        })
+            .setLngLat([snap.geometry.coordinates[0], snap.geometry.coordinates[1]])
+            .setHTML($popupContent[0].outerHTML);
+        // .addTo(map);
+
+        $cardImg.on("click", () => {
+            if (!popup.isOpen()) popup.addTo(map);
+            if (isMobileDevice()) {
+                let myOffCanvas = document.getElementById("offcanvasNavbarSnaps");
+                let openedCanvas = bootstrap.Offcanvas.getInstance(myOffCanvas);
+                openedCanvas.hide();
+            }
+            map.flyTo({
+                center: [snap.geometry.coordinates[0], snap.geometry.coordinates[1]],
+                zoom: 15,
+                speed: 1.5,
+            })
+        });
+
+        let $listElement = $(`<li class="nav-item"></li>`);
+        $listElement.append($card);
         $("#catsnaps-list").append($listElement);
 
     });
