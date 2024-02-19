@@ -9,6 +9,7 @@ import '@/styles/index.scss'
 
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
+import $ from 'jquery'
 
 /*
 You can also import JavaScript plugins individually as needed to keep bundle sizes down:
@@ -19,9 +20,13 @@ import { Tooltip, Toast, Popover } from 'bootstrap'
  */
 
 import map from '@/js/map'
+import { Service } from '@/js/services'
 
 let servicesEnabled = [/ia\./, /rye\./];
 function isServiceEnabled(service) {
+    if (/\+/.test(service.name)) {
+        return false;
+    }
     for (let s of servicesEnabled) {
         if (s.test(service.name)) {
             return true;
@@ -36,6 +41,13 @@ then((res) => {
     return res.json();
 }).then((data) => {
     console.log("data", data);
+    /*
+    [{
+        "imageType": "pbf",
+        "name": "ia.level-23",
+        "url": "https://mb.tiles.catonmap.info/services/ia.level-23",
+    }, ...]
+     */
     for (let service of data) {
         console.log("service", service);
         if (!isServiceEnabled(service)) {
@@ -47,6 +59,12 @@ then((res) => {
             return res.json();
         }).then((data) => {
             console.log("data", data);
+            const service = new Service(data);
+            service.greet();
+            service.appendHTML(map);
+            service.addSourceToMap(map);
+            // service.addLayerToMap(map);
+
         }).catch((err) => {
             console.error("err", err);
         });
