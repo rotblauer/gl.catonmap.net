@@ -20,3 +20,23 @@ then((res) => {
 }).catch((err) => {
     console.error("err", err);
 });
+
+fetch("https://api.catonmap.info/lastknown").
+then((res) => {
+    console.log("res", res);
+    return res.json();
+}).then((data) => {
+    console.log("data", data);
+}).catch((err) => {
+    console.error("err", err);
+});
+
+fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000) - 60*60*24*30}`).
+then((res) => {
+    console.log("res", res);
+    return res.json();
+}).then((data) => {
+    console.log("data", data);
+}).catch((err) => {
+    console.error("err", err);
+});
