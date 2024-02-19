@@ -100,6 +100,8 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
         const s3URL = `https://s3.us-east-2.amazonaws.com/${snap.properties.imgS3}`;
         const localTime = new Date(snap.properties.Time).toLocaleString();
 
+        // We'll reuse the card for both the drawer-list view
+        // and the map popup.
         let $cardImg = $("<img>").attr("src", s3URL).addClass("card-img-top");
         let $card = $(`
             <div class="card mb-2">
@@ -123,16 +125,23 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
         `)
         $card.prepend($cardImg);
 
+        // Popup
+        //
+        // Tweak the card content style for the popup.
         let $popupContent = $card.clone().removeClass("mb-2").addClass("m-0");
+        // Add a link to the image source in the popup.
         $popupContent.find("img").wrap($("<a>").attr("href", s3URL).attr("target", "_blank"));
         const popup = new maplibregl.Popup({
             closeOnClick: true,
             closeButton: false,
         })
-            .setLngLat([snap.geometry.coordinates[0], snap.geometry.coordinates[1]])
+            .setLngLat(snap.geometry.coordinates)
             .setHTML($popupContent[0].outerHTML);
-        // .addTo(map);
 
+        // Now we can assign the handler to the card image destined for the list view
+        // and add the card to the list.
+        // We don't want to assign the listener to the popup card image
+        // because clicking is supposed to open the popup.
         $cardImg.on("click", () => {
             if (!popup.isOpen()) popup.addTo(map);
             if (isMobileDevice()) {
@@ -147,9 +156,32 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
             })
         });
 
+        // Finally append the card to the list.
         let $listElement = $(`<li class="nav-item"></li>`);
         $listElement.append($card);
         $("#catsnaps-list").append($listElement);
+
+        // Markers
+
+        // create a DOM element for the marker
+        let $marker = $(`<div>`);
+        $marker.addClass("snap-marker");
+        $marker.css("background-image", `url(${s3URL})`);
+        $marker.css("background-size", "contain");
+        $marker.css("width", `30px`);
+        $marker.css("height", `30px`);
+
+        // add marker to map
+        let marker = new maplibregl.Marker({element: $marker[0]})
+            .setLngLat(snap.geometry.coordinates)
+            .setPopup(popup)
+            .addTo(map);
+
+        // marker.on('click', () => {
+        //     console.debug("popup.isOpen()", popup.isOpen());
+        //     if (!popup.isOpen()) popup.addTo(map);
+        //     // popup.addTo(map);
+        // });
 
     });
 }).catch((err) => {
