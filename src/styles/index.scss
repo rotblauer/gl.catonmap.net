@@ -14,17 +14,22 @@
 @import 'variables';
 @import 'scaffolding';
 
-html {
-  //min-height: 100%;
-}
+//html {
+//  //min-height: 100%;
+//}
+//
+//body {
+//  height: 100%;
+//}
+//
+//#map {
+//  height: 100%;
+//  //flex: 1 1 auto;
+//}
 
-body {
-  height: 100vh;
-}
+body { margin: 0; padding: 0; }
+html, body, #map { height: 100%; }
 
-#map {
-  height: 100vh;
-}
 
 .maplibregl-ctrl-top-right, .maplibregl-ctrl-top-left {
   top: 55px;
