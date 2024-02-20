@@ -13,9 +13,10 @@ import $ from 'jquery'
 // Import bootstrap icons
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-import TimeAgo  from "javascript-time-ago";
+import TimeAgo from "javascript-time-ago";
 // English.
 import en from 'javascript-time-ago/locale/en'
+
 TimeAgo.addDefaultLocale(en)
 // Create formatter (English).
 const timeAgo = new TimeAgo('en-US')
@@ -92,10 +93,13 @@ fetch("https://mb.tiles.catonmap.info/services").then((res) => {
 let catMarkers = [];
 
 function fetchLastCats() {
+    $(`#catstatus-container`).empty();
+    $(`.spinner-border`).show();
     fetch("https://api.catonmap.info/lastknown").then((res) => {
         // console.log("res", res);
         return res.json();
     }).then((data) => {
+
         catMarkers.forEach((marker) => {
             marker.remove();
         });
@@ -106,9 +110,9 @@ function fetchLastCats() {
             statuses.push(status);
         }
         statuses.sort((a, b) => {
-          return b.properties.UnixTime - a.properties.UnixTime;
+            return b.properties.UnixTime - a.properties.UnixTime;
         })
-        $(`#catstatus-container`).empty();
+        $(`.spinner-border`).hide();
         for (const status of statuses) {
 
             // Markers
@@ -147,11 +151,11 @@ function fetchLastCats() {
                 </div>
             `);
             $card.on("click", () => {
-               map.flyTo({
-                     center: status.geometry.coordinates,
-                     zoom: 13,
-                     speed: 1.5,
-               })
+                map.flyTo({
+                    center: status.geometry.coordinates,
+                    zoom: 13,
+                    speed: 1.5,
+                })
             });
             $(`#catstatus-container`).append($card);
 
@@ -323,5 +327,5 @@ $(`.mapstyles-select`).on("change", (e) => {
             service.addSourceToMap(map);
             service.initFromState(map);
         })
-    }, 500);
+    }, 1000);
 });

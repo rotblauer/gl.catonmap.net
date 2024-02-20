@@ -32,8 +32,8 @@ map.on('moveend' , () => {
     setState('lng', map.getCenter().lng.toFixed(6));
     setState('zoom', map.getZoom().toFixed(1));
     // setState('style', map.getStyle());
-    setState('pitch', map.getPitch());
-    setState('bearing', map.getBearing());
+    setState('pitch', map.getPitch().toFixed(0));
+    setState('bearing', map.getBearing().toFixed(0));
 });
 
 map.on('zoomend', () => {
