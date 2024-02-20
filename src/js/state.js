@@ -25,7 +25,7 @@ export function getState() {
         bearing: state["bearing"] || 0,
         lat: state["lat"] || 44.987854003, // 38.613651383524335, // 32,
         lng: state["lng"] || -93.25876617, // -90.25388717651369,
-        style: state["style"] || "https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL",
+        style: state["style"] || "https://api.maptiler.com/maps/streets-v2/style.json?key=XrsT3wNTcIE6gABWxyV5",
         snapmarkers: true,
         // layer-edge-catcolor=true&layer-devop-catcolor=true&layer-rye.level-23-density=true&layer-ia.level-23-activity=true
         "layer-edge-catcolor": true,
