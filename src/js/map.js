@@ -1,12 +1,17 @@
 /*
     https://mb.tiles.catonmap.info/services/ia.level-23
  */
-
 // Test import of a JavaScript module
 import { geocoder } from '@/js/geocoder'
+
 import { MaplibreExportControl, Size, PageOrientation, Format, DPI} from "@watergis/maplibre-gl-export";
 import '@watergis/maplibre-gl-export/dist/maplibre-gl-export.css';
+
+import MaplibreInspect from 'maplibre-gl-inspect';
+import 'maplibre-gl-inspect/dist/maplibre-gl-inspect.css';
+
 import maplibregl from 'maplibre-gl'
+
 import { getState, setState } from "@/js/state";
 
 let initialState = getState();
@@ -33,6 +38,12 @@ map.addControl(new MaplibreExportControl({
     Crosshair: false,
     PrintableArea: true
 }), 'top-right');
+map.addControl(new MaplibreInspect({
+    popup: new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false
+    })
+}));
 // map.addControl(new maplibregl.TerrainControl({
 //     source: "terrain"
 // }));
