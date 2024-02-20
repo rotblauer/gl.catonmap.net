@@ -14,8 +14,11 @@
 @import 'variables';
 @import 'scaffolding';
 
-html, body {
-  height: 100vh;
+html {
+  min-height: 100%;
+}
+body {
+  height: 100%;
   overflow: hidden;
 }
 #map {
