@@ -4,6 +4,8 @@
 
 // Test import of a JavaScript module
 import { geocoder } from '@/js/geocoder'
+import { MaplibreExportControl, Size, PageOrientation, Format, DPI} from "@watergis/maplibre-gl-export";
+import '@watergis/maplibre-gl-export/dist/maplibre-gl-export.css';
 import maplibregl from 'maplibre-gl'
 import { getState, setState } from "@/js/state";
 
@@ -23,6 +25,14 @@ const map = new maplibregl.Map({
 // Add zoom and rotation controls to the map.
 geocoder.addToMap(map);
 map.addControl(new maplibregl.NavigationControl());
+map.addControl(new MaplibreExportControl({
+    PageSize: Size.A4,
+    PageOrientation: PageOrientation.Landscape,
+    Format: Format.PNG,
+    DPI: DPI[96],
+    Crosshair: false,
+    PrintableArea: true
+}), 'top-right');
 // map.addControl(new maplibregl.TerrainControl({
 //     source: "terrain"
 // }));
