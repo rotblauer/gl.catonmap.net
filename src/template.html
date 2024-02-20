@@ -11,16 +11,25 @@
 <body>
 <nav class="navbar fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#"></a>
+        <a class="navbar-brand">
+            <img src="/assets/cat-icon.png" alt="" width="24" height="24"
+                 style="border-radius: 15px; vertical-align: top; margin-top: 3px;">
+            Cat Tracks
+        </a>
 
         <div class="d-flex flex-row-reverse">
-            <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
+            <button id="snaps-view-button" class="navbar-toggler bg-body-tertiary btn btn-sm position-relative" type="button" data-bs-toggle="offcanvas"
                     data-bs-target="#offcanvasNavbarSnaps" aria-controls="offcanvasNavbarSnaps"
                     aria-label="Toggle navigation">
                 <!--            <span class="navbar-toggler-icon"></span>-->
                 <i class="bi-camera-fill"></i>
                 <i class="bi-three-dots-vertical"></i>
                 <!--                <span class="navbar-toggler-icon" ></span>-->
+                <span id="snaps-notification" class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle d-none">
+                    <span class="visually-hidden">New alerts</span>
+                  </span>
+
+
             </button>
             <div class="d-flex pe-1">
                 <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
@@ -33,32 +42,7 @@
                 </button>
             </div>
             <div class="d-flex pe-1">
-                <select class="form-select mapstyles-select">
-                    <option value="https://api.maptiler.com/maps/streets-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">
-                        Streets
-                    </option>
-                    <option value="https://api.maptiler.com/maps/streets-v2-pastel/style.json?key=XrsT3wNTcIE6gABWxyV5">
-                        Pastel Streets
-                    </option>
-                    <option value="https://api.maptiler.com/maps/openstreetmap/style.json?key=XrsT3wNTcIE6gABWxyV5">
-                        OpenStreetMap
-                    </option>
-                    <option value="https://api.maptiler.com/maps/outdoor-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">
-                        Outdoor
-                    </option>
-                    <option value="https://api.maptiler.com/maps/topo-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">Topo
-                    </option>
-                    <option value="https://api.maptiler.com/maps/winter-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">Winter
-                    </option>
-                    <option value="https://api.maptiler.com/maps/satellite/style.json?key=XrsT3wNTcIE6gABWxyV5">
-                        Satellite
-                    </option>
-                    <option value="https://api.maptiler.com/maps/backdrop/style.json?key=XrsT3wNTcIE6gABWxyV5">
-                        Backdrop
-                    </option>
-                    <option value="https://api.maptiler.com/maps/dataviz/style.json?key=XrsT3wNTcIE6gABWxyV5">Dataviz
-                    </option>
-                </select>
+
             </div>
         </div>
 
@@ -70,6 +54,37 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
+                <div class="">
+                    <label for="mapstyle-select" class="form-label text-muted">Map Style</label>
+                    <select id="mapstyle-select" class="form-select mapstyles-select">
+                        <option value="https://api.maptiler.com/maps/streets-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            Streets
+                        </option>
+                        <option value="https://api.maptiler.com/maps/streets-v2-pastel/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            Pastel Streets
+                        </option>
+                        <option value="https://api.maptiler.com/maps/openstreetmap/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            OpenStreetMap
+                        </option>
+                        <option value="https://api.maptiler.com/maps/outdoor-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            Outdoor
+                        </option>
+                        <option value="https://api.maptiler.com/maps/topo-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">Topo
+                        </option>
+                        <option value="https://api.maptiler.com/maps/winter-v2/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            Winter
+                        </option>
+                        <option value="https://api.maptiler.com/maps/satellite/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            Satellite
+                        </option>
+                        <option value="https://api.maptiler.com/maps/backdrop/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            Backdrop
+                        </option>
+                        <option value="https://api.maptiler.com/maps/dataviz/style.json?key=XrsT3wNTcIE6gABWxyV5">
+                            Dataviz
+                        </option>
+                    </select>
+                </div>
                 <ul id="services-list" class="navbar-nav justify-content-end flex-grow-1 pe-3"></ul>
             </div>
         </div>
@@ -89,12 +104,30 @@
 
 <div id="map"></div>
 
-<footer class="footer py-3 fixed-bottom">
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog d-flex">
+        <div class="modal-content">
+            <!--            <div class="modal-header">-->
+            <!--                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>-->
+            <!--                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
+            <!--            </div>-->
+            <div class="modal-body catstatus-container">
+                <!--        cat cards go here-->
+            </div>
+            <!--            <div class="modal-footer">-->
+            <!--            </div>-->
+        </div>
+    </div>
+</div>
+
+
+<footer class="footer py-3 fixed-bottom d-none d-lg-block" style="z-index: 1044;">
     <div class="spinner-border m-4" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
-    <div id="catstatus-container" class="container-fluid">
-<!--        cat cards go here-->
+    <div class="container-fluid catstatus-container">
+        <!--        cat cards go here-->
     </div>
 </footer>
 

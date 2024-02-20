@@ -23,7 +23,7 @@ export function getState() {
         zoom: state["zoom"] || 12,
         pitch: state["pitch"] || 0,
         bearing: state["bearing"] || 0,
-        lat: state["lat"] || 44.987854003, // 38.613651383524335, // 32,
+        lat: state["lat"] || 44.987854003, // 38.613651383524335, // 32,i
         lng: state["lng"] || -93.25876617, // -90.25388717651369,
         style: state["style"] || "https://api.maptiler.com/maps/streets-v2/style.json?key=XrsT3wNTcIE6gABWxyV5",
         snapmarkers: true,

@@ -40,6 +40,24 @@ html, body, #map { height: 100%; }
   padding: 0 !important;
 }
 
+// The default for this control is 50px, which is larger than the rest of the controls.
+.maplibregl-ctrl-geocoder.maplibregl-ctrl-geocoder--collapsed {
+  width: 30px;
+  min-width: 30px;
+}
+input.mapboxgl-ctrl-geocoder--input.maplibregl-ctrl-geocoder--input {
+  //width: 30px;
+  //min-width: 30px;
+  height: 30px;
+}
+.maplibregl-ctrl-geocoder--icon-search {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  width: 18px;
+  height: 23px;
+}
+
 .navbar.fixed-top {
   background-color: #FFFFFF00;
 }
@@ -52,14 +70,30 @@ html, body, #map { height: 100%; }
   padding: 0;
 }
 
-//.mapstyles-select {
-//  position: absolute;
-//  top: 60px;
-//  left: 10px;
-//  z-index: 1000;
-//}
-
 // Turn off the attribution.
 .maplibregl-ctrl-bottom-right > details {
   display: none;
+}
+
+footer.footer.fixed-bottom {
+  //border: 1px solid black;
+  pointer-events: none;
+}
+
+#catstatus-container {
+  pointer-events: all;
+}
+
+.modal-dialog {
+  position:fixed;
+  top:auto;
+  right:auto;
+  left:auto;
+  bottom:0;
+  //width: 100%;
+}
+
+.modal-content {
+  background: none !important;
+  border: none !important;
 }

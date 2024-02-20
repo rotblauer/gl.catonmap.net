@@ -46,10 +46,15 @@ function addToMap(map) {
     map.addControl(
         new MaplibreGeocoder(geocoderApi, {
             maplibregl: maplibregl,
+            collapsed: true,
             marker: false,
+            showResultMarkers: false,
+            showResultsWhileTyping: true,
+            minLength: 3,
+            debounceSearch: 400,
             flyTo: {
                 zoom: 11,
-            }
+            },
         })
     );
 }

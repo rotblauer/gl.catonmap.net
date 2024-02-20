@@ -79,7 +79,7 @@ fetch("https://mb.tiles.catonmap.info/services").then((res) => {
     })
     services.forEach((service) => {
         service = new Service(service);
-        service.greet();
+        // service.greet();
         service.appendHTML(map);
         service.addSourceToMap(map);
         // service.addLayerToMap(map);
@@ -93,7 +93,7 @@ fetch("https://mb.tiles.catonmap.info/services").then((res) => {
 let catMarkers = [];
 
 function fetchLastCats() {
-    $(`#catstatus-container`).empty();
+    $(`.catstatus-container`).empty();
     $(`.spinner-border`).show();
     fetch("https://api.catonmap.info/lastknown").then((res) => {
         // console.log("res", res);
@@ -109,6 +109,7 @@ function fetchLastCats() {
         for (const [catName, status] of Object.entries(data)) {
             statuses.push(status);
         }
+
         statuses.sort((a, b) => {
             return b.properties.UnixTime - a.properties.UnixTime;
         })
@@ -157,7 +158,7 @@ function fetchLastCats() {
                     speed: 1.5,
                 })
             });
-            $(`#catstatus-container`).append($card);
+            $(`.catstatus-container`).append($card);
 
         }
 
@@ -168,6 +169,24 @@ function fetchLastCats() {
 
 fetchLastCats();
 setInterval(fetchLastCats, 1000 * 60);
+
+function getSnapsLastOpened() {
+    const defaultDate = new Date(Date.now() - 30 * 60 * 60 * 1000);
+    let lastOpened = localStorage.getItem("snaps-last-opened");
+    if (lastOpened === null) {
+        lastOpened = defaultDate.toISOString();
+        localStorage.setItem("snaps-last-opened", lastOpened);
+        $(`#snaps-notification`).removeClass("d-none");
+    }
+    return new Date(lastOpened);
+}
+
+function setSnapsLastOpened() {
+    localStorage.setItem("snaps-last-opened", new Date().toISOString());
+   $(`#snaps-notification`).addClass("d-none");
+}
+
+$(`#snaps-view-button`).on("click", setSnapsLastOpened);
 
 fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30}`).then((res) => {
     // console.log("res", res);
@@ -185,7 +204,12 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
 
     data.forEach((snap) => {
         const s3URL = `https://s3.us-east-2.amazonaws.com/${snap.properties.imgS3}`;
-        const localTime = new Date(snap.properties.Time).toLocaleString();
+        const snapTime = new Date(snap.properties.Time);
+        const localTimeStr = snapTime.toLocaleString();
+
+        if (snapTime > getSnapsLastOpened()) {
+            $(`#snaps-notification`).removeClass("d-none");
+        }
 
         // We'll reuse the card for both the drawer-list view
         // and the map popup.
@@ -201,7 +225,7 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
                     </div>
                     <div class="col">
                         <p class="card-text text-end">
-                            <span class="text-end">${localTime}</span>
+                            <span class="text-end">${localTimeStr}</span>
                         </p>
                     </div>
                   </div>
@@ -281,7 +305,7 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
 function addCatsnapMarkerToggleControl() {
     let $toggle = $(`
         <div id="catsnap-marker-toggle" class="maplibregl-ctrl maplibregl-ctrl-group">
-            <button class="maplibregl-ctrl-icon btn" title="Toggle Catsnap Markers">
+            <button class="maplibregl-ctrl-icon btn" title="Toggle Cat Snap Markers">
                 <i class="bi-camera"></i>
             </button>
         </div>
@@ -309,14 +333,32 @@ function addCatsnapMarkerToggleControl() {
     //     element: $toggle[0]
     // });
 }
-
 addCatsnapMarkerToggleControl();
+
+function addCatTrackerToggleControl() {
+    // d-none d-xs-block d-sm-block d-md-block
+    let $ctrl = $(`
+        <div id="cattracker-toggle" class="maplibregl-ctrl maplibregl-ctrl-group">
+            <button type="button" class="maplibregl-ctrl-icon btn" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Show Cat Tracker">
+                🐈
+            </button>
+        </div>
+    `);
+    $(`.maplibregl-ctrl-top-right`).append($ctrl[0]);
+}
+
+if (isMobileDevice()) addCatTrackerToggleControl();
 
 $(`.mapstyles-select`).on("change", (e) => {
     const style = e.target.value;
     setState("style", style);
     map.setStyle(style);
     setState("style", style);
+    if (isMobileDevice()) {
+        let myOffCanvas = document.getElementById("offcanvasNavbarServices");
+        let openedCanvas = bootstrap.Offcanvas.getInstance(myOffCanvas);
+        openedCanvas.hide();
+    }
     // HACKY shit.
     // https://github.com/mapbox/mapbox-gl-js/issues/4006
     // https://github.com/mapbox/mapbox-gl-js/issues/8660
