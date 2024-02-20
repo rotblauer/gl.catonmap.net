@@ -14,8 +14,12 @@
 @import 'variables';
 @import 'scaffolding';
 
-html, body, #map {
-  height: 100%;
+html, body {
+  height: 100vh;
+  overflow: hidden;
+}
+#map {
+  height: 100vh;
 }
 
 .maplibregl-ctrl-top-right, .maplibregl-ctrl-top-left {

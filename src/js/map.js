@@ -16,6 +16,8 @@ const map = new maplibregl.Map({
     pitch: initialState.pitch,
     bearing: initialState.bearing,
     maxPitch: 80,
+    minZoom: 1,
+    maxZoom: 18,
 });
 
 // Add zoom and rotation controls to the map.
