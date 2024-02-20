@@ -3,9 +3,10 @@
 //  src: url('../fonts/Inter.ttf');
 //}
 
-
-@import '_variables.scss'; // Import overrides for Bootstrap.
-@import "bootstrap/scss/bootstrap"; // Import all of Bootstrap's CSS
+@import '_variables.scss';
+// Import overrides for Bootstrap.
+@import "bootstrap/scss/bootstrap";
+// Import all of Bootstrap's CSS
 @import 'maplibre-gl/dist/maplibre-gl.css';
 @import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 
@@ -16,6 +17,7 @@ body {
   margin: 0;
   padding: 0;
 }
+
 html, body, #map {
   height: 100%;
   width: 100%;
@@ -57,7 +59,34 @@ footer.footer.fixed-bottom {
   bottom: 0;
   //width: 100%;
 }
+
 .modal-content {
   background: none !important;
   border: none !important;
+}
+
+.service-layer-options {
+  border-left: 4px solid aliceblue;
+  padding-left: 5px;
+  margin-bottom: 5px;
+}
+
+#activity-color-legend {
+  pointer-events: none;
+  //position: absolute;
+  //bottom: 0;
+  padding: 0.5rem;
+  background-color: #FFFFFF00;
+  border-radius: 0.5rem;
+  //z-index: 1;
+
+}
+
+.color-swatch {
+  height: 1rem;
+  width: 1rem;
+  display: inline-block;
+  margin-top: 0.2rem;
+  margin-right: 0.38rem;
+  margin-left: 0.38rem;
 }

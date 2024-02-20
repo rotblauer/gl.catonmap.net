@@ -28,7 +28,7 @@ version	"2"
  */
 
 import $ from 'jquery';
-import {Density, Activity, CatColor} from './map_paint';
+import {Density, Activity, CatColor, ColorMap} from './map_paint';
 import {getState, setState} from "@/js/state";
 
 const servicePrototype = {
@@ -37,10 +37,11 @@ const servicePrototype = {
     },
 
     appendHTML(map) {
+        const densityAttr = this.getLayerAttribute("point_count");
         const initialState = getState();
         let $serviceOptions = $(`
-        <div id="layer-options-${this.uid}" class="">
-            <p class="text mb-1">${/rye/.test(this.uid) || /ia/.test(this.uid) ? '<b>' + this.uid + '</b>' : this.uid}
+        <div id="layer-options-${this.uid}" class="service-layer-options">
+            <p class="text mb-1">${true ? '<b>' + this.uid + '</b>' : this.uid}
             ${this.uid === "edge" ? '<small class="text-info"><i> - an aggregate of the latest tracks for all cats pending master tile generation.</i></small>' : ''}
             ${this.uid === "devop" ? '<small class="text-info"><i> - an aggregate of penultimate tracks for all cats pending master tile generation.</i></small>' : ''}
             </p>
@@ -52,10 +53,14 @@ const servicePrototype = {
                     <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-CatColor">Cat Color</label>
                 </div>
                 <div class="form-check form-switch">
-                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Activity">Activity</label>
+                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Activity">Activity<sup class="text-muted">*</sup></label>
                 </div>
                 <div class="form-check form-switch">
-                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Density">Density</label>
+                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Density">Density <span>&nbsp;&nbsp;&nbsp;</span> 
+                  <small class="text-muted">${densityAttr.min}</small> 
+                  <div class="color-swatch" style="height: 0.8rem !important; width: 4rem !important; background: linear-gradient(90deg, ${ColorMap.density.min + "FF"} 0%, ${ColorMap.density.max + "FF"} 100%);"></div>
+                  <small class="text-muted">${densityAttr.max}</small> 
+                  </label>
                 </div>
                 </div>
                 </div>
