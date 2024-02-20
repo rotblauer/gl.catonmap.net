@@ -39,12 +39,12 @@ const servicePrototype = {
     appendHTML(map) {
         const initialState = getState();
         let $serviceOptions = $(`
-        <li id="layer-options-${this.uid}" class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-               aria-expanded="false">
-                ${this.uid}
-            </a>
-            <ul class="dropdown-menu border-0 show">
+        <div id="layer-options-${this.uid}" class="">
+            <p class="text">${this.uid}
+            ${this.uid === "edge" ? '<small class="text-info"> - an aggregate of the latest tracks for all cats pending master tile generation.</small>' : ''}
+            ${this.uid === "devop" ? '<small class="text-info"> - an aggregate of penultimate tracks for all cats pending master tile generation.</small>' : ''}
+            </p>
+            <div id="" class="border-0">
                 
                 <div class="form-check form-switch">
                     <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-CatColor">Cat Color</label>
@@ -63,12 +63,18 @@ const servicePrototype = {
                 <div class="mt-2">
                     <ul style="font-size: smaller;">
                         <li><span class="text-muted">Points count: ${this.tilestats.layers[0].count}</span></li>
-                        <li><span class="text-muted">Points ranging: ${new Date(this.getLayerAttribute("UnixTime").values[1] * 1000).toLocaleDateString()} - ${new Date(this.getLayerAttribute("UnixTime").max * 1000).toLocaleString()}</span></li>
+                        <li><span class="text-muted">Points range: 
+                            ${new Date(this.getLayerAttribute("UnixTime").values[1] * 1000).toLocaleDateString()} → ${new Date(this.getLayerAttribute("UnixTime").max * 1000).toLocaleString()}</span></li>
                     </ul>
                 </div>
-            </ul>
-        </li>
+            </div>
+        </div>
       `);
+
+        // let trigger = document.getElementById('test-dropdown-btn')
+        // document.getElementById('test-btn').addEventListener("click", (e)=>{
+        //     bootstrap.Dropdown.getOrCreateInstance(trigger).toggle()
+        // })
 
         $("#services-list").append($serviceOptions);
 

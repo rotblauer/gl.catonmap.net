@@ -1,0 +1,29 @@
+.maplibregl-ctrl-top-right, .maplibregl-ctrl-top-left {
+  top: 55px;
+}
+
+// Remove the default padding from the popup content.
+.maplibregl-popup-content {
+  padding: 0 !important;
+}
+
+// The default for the geocoder control is 50px, which is larger than the rest of the controls.
+.maplibregl-ctrl-geocoder.maplibregl-ctrl-geocoder--collapsed {
+  width: 30px;
+  min-width: 30px;
+}
+input.mapboxgl-ctrl-geocoder--input.maplibregl-ctrl-geocoder--input {
+  height: 30px;
+}
+.maplibregl-ctrl-geocoder--icon-search {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  width: 18px;
+  height: 23px;
+}
+
+// Turn off the attribution.
+.maplibregl-ctrl-bottom-right > details {
+  display: none;
+}

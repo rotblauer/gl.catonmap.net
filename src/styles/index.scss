@@ -1,67 +1,32 @@
-@font-face {
-  font-family: 'Inter';
-  src: url('../fonts/Inter.ttf');
-}
-
-// Import all of Bootstrap's CSS
-//var(--bs-offcanvas-width, 800px);
-@import "bootstrap/scss/bootstrap";
+//@font-face {
+//  font-family: 'Inter';
+//  src: url('../fonts/Inter.ttf');
+//}
 
 
+@import '_variables.scss'; // Import overrides for Bootstrap.
+@import "bootstrap/scss/bootstrap"; // Import all of Bootstrap's CSS
 @import 'maplibre-gl/dist/maplibre-gl.css';
 @import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 
-@import 'variables';
-@import 'scaffolding';
+@import '_maplibregl.scss'; // Overrides for maplibre-gl
 
-//html {
-//  //min-height: 100%;
-//}
-//
-//body {
-//  height: 100%;
-//}
-//
-//#map {
-//  height: 100%;
-//  //flex: 1 1 auto;
-//}
-
-body { margin: 0; padding: 0; }
-html, body, #map { height: 100%; }
-
-
-.maplibregl-ctrl-top-right, .maplibregl-ctrl-top-left {
-  top: 55px;
+// I like big maps. I cannot lie.
+body {
+  margin: 0;
+  padding: 0;
+}
+html, body, #map {
+  height: 100%;
+  width: 100%;
 }
 
-.maplibregl-popup-content {
-  //background: #FFFFFF88 !important;
-  padding: 0 !important;
-}
-
-// The default for this control is 50px, which is larger than the rest of the controls.
-.maplibregl-ctrl-geocoder.maplibregl-ctrl-geocoder--collapsed {
-  width: 30px;
-  min-width: 30px;
-}
-input.mapboxgl-ctrl-geocoder--input.maplibregl-ctrl-geocoder--input {
-  //width: 30px;
-  //min-width: 30px;
-  height: 30px;
-}
-.maplibregl-ctrl-geocoder--icon-search {
-  position: absolute;
-  top: 5px;
-  left: 6px;
-  width: 18px;
-  height: 23px;
-}
-
+// Don't visually interrupt or truncate the map.
 .navbar.fixed-top {
   background-color: #FFFFFF00;
 }
 
+// Snap markers are mini-catsnaps images.
 .snap-marker {
   display: block;
   border: none;
@@ -70,29 +35,28 @@ input.mapboxgl-ctrl-geocoder--input.maplibregl-ctrl-geocoder--input {
   padding: 0;
 }
 
-// Turn off the attribution.
-.maplibregl-ctrl-bottom-right > details {
-  display: none;
-}
-
+// I don't want the footer to interrupt map interaction, especially on mobile.
 footer.footer.fixed-bottom {
   //border: 1px solid black;
   pointer-events: none;
 }
 
-#catstatus-container {
-  pointer-events: all;
+// ... But the cat tracker cards should be clickable.
+.cat-tracker-card {
+  pointer-events: all !important;
+  cursor: pointer;
 }
 
+// The only modal in use is for showing the cat tracker details on mobile.
+// If that changes, you'll need to adjust this to be more specific.
 .modal-dialog {
-  position:fixed;
-  top:auto;
-  right:auto;
-  left:auto;
-  bottom:0;
+  position: fixed;
+  top: auto;
+  right: auto;
+  left: auto;
+  bottom: 0;
   //width: 100%;
 }
-
 .modal-content {
   background: none !important;
   border: none !important;
