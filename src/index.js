@@ -13,6 +13,13 @@ import $ from 'jquery'
 // Import bootstrap icons
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
+import TimeAgo  from "javascript-time-ago";
+// English.
+import en from 'javascript-time-ago/locale/en'
+TimeAgo.addDefaultLocale(en)
+// Create formatter (English).
+const timeAgo = new TimeAgo('en-US')
+
 /*
 You can also import JavaScript plugins individually as needed to keep bundle sizes down:
 import Alert from 'bootstrap/js/dist/alert'
@@ -45,10 +52,10 @@ function isServiceEnabled(serviceSummary) {
 
 let globalServices = [];
 fetch("https://mb.tiles.catonmap.info/services").then((res) => {
-    console.log("res", res);
+    // console.log("res", res);
     return res.json();
 }).then((serviceSummaries) => {
-    console.log("data", serviceSummaries);
+    // console.log("data", serviceSummaries);
     /*
     [{
         "imageType": "pbf",
@@ -82,20 +89,87 @@ fetch("https://mb.tiles.catonmap.info/services").then((res) => {
     console.error("err", err);
 });
 
-fetch("https://api.catonmap.info/lastknown").then((res) => {
-    console.log("res", res);
-    return res.json();
-}).then((data) => {
-    console.log("data", data);
-}).catch((err) => {
-    console.error("err", err);
-});
+let catMarkers = [];
+
+function fetchLastCats() {
+    fetch("https://api.catonmap.info/lastknown").then((res) => {
+        // console.log("res", res);
+        return res.json();
+    }).then((data) => {
+        catMarkers.forEach((marker) => {
+            marker.remove();
+        });
+        catMarkers = [];
+        // console.log("data", data);
+        let statuses = [];
+        for (const [catName, status] of Object.entries(data)) {
+            statuses.push(status);
+        }
+        statuses.sort((a, b) => {
+          return b.properties.UnixTime - a.properties.UnixTime;
+        })
+        $(`#catstatus-container`).empty();
+        for (const status of statuses) {
+
+            // Markers
+            // console.debug("status", status, "data", data);
+            let $marker = $(`<div>`);
+            $marker.addClass("cat-marker");
+            $marker.css("background-image", `url(/assets/cat-icon.png)`);
+            $marker.css("background-size", "contain");
+            $marker.css("width", `30px`);
+            $marker.css("height", `30px`);
+
+            // add marker to map
+            let marker = new maplibregl.Marker({element: $marker[0]})
+                .setLngLat(status.geometry.coordinates);
+
+            marker.addTo(map);
+            catMarkers.push(marker);
+
+            // Status Cards
+            let cardBorder = "";
+            if (/^rye/.test(status.properties.Name.toLowerCase())) {
+                cardBorder = "text-bg-primary";
+            } else if (/moto/.test(status.properties.Name.toLowerCase())) {
+                cardBorder = "text-bg-danger";
+            }
+            let $card = $(`
+                <div class="row justify-content-end mb-2">
+                    <div class="d-flex">
+                        <div class="card py-0 px-2 ${cardBorder}">
+                            <div class="card-body p-1">
+                                 <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
+                                <small>${status.properties.Name} - ${status.properties.Activity} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $card.on("click", () => {
+               map.flyTo({
+                     center: status.geometry.coordinates,
+                     zoom: 13,
+                     speed: 1.5,
+               })
+            });
+            $(`#catstatus-container`).append($card);
+
+        }
+
+    }).catch((err) => {
+        console.error("err", err);
+    });
+}
+
+fetchLastCats();
+setInterval(fetchLastCats, 1000 * 60);
 
 fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30}`).then((res) => {
-    console.log("res", res);
+    // console.log("res", res);
     return res.json();
 }).then((data) => {
-    console.log("data", data);
+    // console.log("data", data);
     data = data.filter((d) => {
         return typeof d.properties.imgS3 !== "undefined";
     })
@@ -239,11 +313,15 @@ $(`.mapstyles-select`).on("change", (e) => {
     setState("style", style);
     map.setStyle(style);
     setState("style", style);
+    // HACKY shit.
+    // https://github.com/mapbox/mapbox-gl-js/issues/4006
+    // https://github.com/mapbox/mapbox-gl-js/issues/8660
+    // When you call map.setStyle, it destroys everything.
+    // So we have to reload all the service layers from scratch.
     setTimeout(() => {
         globalServices.forEach((service) => {
             service.addSourceToMap(map);
             service.initFromState(map);
         })
     }, 500);
-
 });
