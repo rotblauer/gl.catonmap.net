@@ -1,5 +1,7 @@
 
 let state = {};
+
+window.localStorage.removeItem("data");
 export function getState() {
     var fragmentParams = new URLSearchParams(new URL(window.location.href).hash.replace('#', ''));
 
@@ -8,7 +10,7 @@ export function getState() {
     var localStore = {};
 
     try {
-        var d = window.localStorage.getItem("data");
+        var d = window.localStorage.getItem("state");
         if (d !== "" && typeof(d) !== "undefined" && d !== null) {
             localStore = JSON.parse(d);
         }
@@ -47,7 +49,7 @@ export function setState(k, v) {
         let href = new URL(window.location.href)
         href.hash = new URLSearchParams(k).toString();
         window.history.replaceState(k, "---", href);
-        window.localStorage.setItem("data", JSON.stringify(k));
+        window.localStorage.setItem("state", JSON.stringify(k));
         state = k;
         return state;
     }
@@ -63,7 +65,7 @@ export function setState(k, v) {
     let href = new URL(window.location.href)
     href.hash = new URLSearchParams(state).toString();
     window.history.replaceState(windowHistoryState, "---", href);
-    window.localStorage.setItem("data", JSON.stringify(state));
+    window.localStorage.setItem("state", JSON.stringify(state));
 
     return state;
 }

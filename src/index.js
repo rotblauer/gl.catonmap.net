@@ -171,7 +171,7 @@ fetchLastCats();
 setInterval(fetchLastCats, 1000 * 60);
 
 function getSnapsLastOpened() {
-    const defaultDate = new Date(Date.now() - 30 * 60 * 60 * 1000);
+    const defaultDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     let lastOpened = localStorage.getItem("snaps-last-opened");
     if (lastOpened === null) {
         lastOpened = defaultDate.toISOString();
@@ -202,12 +202,14 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
 
     let popupsOnMap = [];
 
+    const snapsLastOpened = getSnapsLastOpened();
+
     data.forEach((snap) => {
         const s3URL = `https://s3.us-east-2.amazonaws.com/${snap.properties.imgS3}`;
         const snapTime = new Date(snap.properties.Time);
         const localTimeStr = snapTime.toLocaleString();
 
-        if (snapTime > getSnapsLastOpened()) {
+        if (snapTime > snapsLastOpened) {
             $(`#snaps-notification`).removeClass("d-none");
         }
 
