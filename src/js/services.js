@@ -40,12 +40,14 @@ const servicePrototype = {
         const initialState = getState();
         let $serviceOptions = $(`
         <div id="layer-options-${this.uid}" class="">
-            <p class="text">${this.uid}
-            ${this.uid === "edge" ? '<small class="text-info"> - an aggregate of the latest tracks for all cats pending master tile generation.</small>' : ''}
-            ${this.uid === "devop" ? '<small class="text-info"> - an aggregate of penultimate tracks for all cats pending master tile generation.</small>' : ''}
+            <p class="text mb-1">${/rye/.test(this.uid) || /ia/.test(this.uid) ? '<b>' + this.uid + '</b>' : this.uid}
+            ${this.uid === "edge" ? '<small class="text-info"><i> - an aggregate of the latest tracks for all cats pending master tile generation.</i></small>' : ''}
+            ${this.uid === "devop" ? '<small class="text-info"><i> - an aggregate of penultimate tracks for all cats pending master tile generation.</i></small>' : ''}
             </p>
             <div id="" class="border-0">
                 
+                <div class="d-flex ">
+                <div class="form-control border-0">
                 <div class="form-check form-switch">
                     <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-CatColor">Cat Color</label>
                 </div>
@@ -55,13 +57,15 @@ const servicePrototype = {
                 <div class="form-check form-switch">
                   <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Density">Density</label>
                 </div>
+                </div>
+                </div>
                 
 <!--                <li>-->
 <!--                    <hr class="dropdown-divider">-->
 <!--                </li>-->
                 
-                <div class="mt-2">
-                    <ul style="font-size: smaller;">
+                <div class="mt-1">
+                    <ul class="" style="font-size: smaller;">
                         <li><span class="text-muted">Points count: ${this.tilestats.layers[0].count}</span></li>
                         <li><span class="text-muted">Points range: 
                             ${new Date(this.getLayerAttribute("UnixTime").values[1] * 1000).toLocaleDateString()} → ${new Date(this.getLayerAttribute("UnixTime").max * 1000).toLocaleString()}</span></li>
