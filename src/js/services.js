@@ -86,7 +86,7 @@ const servicePrototype = {
                         </div>
                     </div>
                     <div class="col">
-                        <small style="font-size: x-small;" class="text-muted">${densityAttr.min}</small> 
+                        <small style="font-size: x-small;" class="text-muted">1</small> 
                         <div class="color-swatch" style="height: 0.8rem !important; width: 4rem !important; background: linear-gradient(90deg, ${ColorMap.density.min + "FF"} 0%, ${ColorMap.density.max + "FF"} 100%);"></div>
                         <small style="font-size: x-small;" class="text-muted">${densityAttr.max}</small>
                     </div>

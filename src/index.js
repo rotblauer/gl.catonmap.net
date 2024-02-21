@@ -370,7 +370,7 @@ $(`.mapstyles-select`).on("change", (e) => {
     // https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#setstyle
     map.setStyle(style, {
         // https://maplibre.org/maplibre-gl-js/docs/API/types/StyleSwapOptions/
-        diff: false, 
+        diff: false,
     });
     setState("style", style);
 
