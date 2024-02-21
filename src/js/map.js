@@ -16,6 +16,7 @@ import 'maplibre-gl-inspect/dist/maplibre-gl-inspect.css';
 import maplibregl from 'maplibre-gl'
 
 import { getState, setState } from "@/js/state";
+import {isMobileDevice} from "@/js/device";
 
 let initialState = getState();
 const map = new maplibregl.Map({
@@ -38,24 +39,28 @@ geocoder.addToMap(map);
 // Zoom +/-, compass, and ~~fullscreen~~.
 map.addControl(new maplibregl.NavigationControl());
 
+if (!isMobileDevice()) {
 // Export control lets you print the map to PNG, JPEG, PDF, or SVG.
-map.addControl(new MaplibreExportControl({
-    PageSize: Size.A4,
-    PageOrientation: PageOrientation.Landscape,
-    Format: Format.PNG,
-    DPI: DPI[96],
-    Crosshair: false,
-    PrintableArea: true
-}), 'top-right');
+    map.addControl(new MaplibreExportControl({
+        PageSize: Size.A4,
+        PageOrientation: PageOrientation.Landscape,
+        Format: Format.PNG,
+        DPI: DPI[96],
+        Crosshair: false,
+        PrintableArea: true
+    }), 'top-right');
 
 // Inspect is a 'developer tool' that lets you inspect the map's features.
 // Unfortunately it doesn't work out of the box to inspect the cattracks.
-map.addControl(new MaplibreInspect({
-    popup: new maplibregl.Popup({
-        closeButton: false,
-        closeOnClick: false
-    })
-}));
+    map.addControl(new MaplibreInspect({
+        popup: new maplibregl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        })
+    }));
+}
+
+
 
 // Draw lets you draw geojson shapes on the map.
 // var Draw = new MapboxDraw();
