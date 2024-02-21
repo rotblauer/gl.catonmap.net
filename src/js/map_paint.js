@@ -99,11 +99,15 @@ export function Density(service) {
         ],
         // 'circle-blur': ['interpolate', ['linear'], ['get', 'Accuracy'], attrAccuracy.min, 0, attrAccuracy.max, 1],
         'circle-color': [
-            'interpolate',
-            ['exponential', 0.9993],
-            ['get', 'point_count'],
-            attrPointCount.min, ['to-color', colorMap.density.min],
-            attrPointCount.max, ['to-color', colorMap.density.max],
+            'case',
+            ['!', ['has', 'point_count']], colorMap.density.min,
+            [
+                'interpolate',
+                ['exponential', 0.9993],
+                ['get', 'point_count'],
+                attrPointCount.min, ['to-color', colorMap.density.min],
+                attrPointCount.max, ['to-color', colorMap.density.max],
+            ],
         ],
     };
 }
