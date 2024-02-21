@@ -10,6 +10,9 @@ import '@watergis/maplibre-gl-export/dist/maplibre-gl-export.css';
 import MaplibreInspect from 'maplibre-gl-inspect';
 import 'maplibre-gl-inspect/dist/maplibre-gl-inspect.css';
 
+// import MapboxDraw from "@mapbox/mapbox-gl-draw";
+// import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
+
 import maplibregl from 'maplibre-gl'
 
 import { getState, setState } from "@/js/state";
@@ -28,8 +31,14 @@ const map = new maplibregl.Map({
 });
 
 // Add zoom and rotation controls to the map.
+// Geocoder does the search feature.
 geocoder.addToMap(map);
+
+// Navigation control is a standard maplibre control, which comes with the map by default.
+// Zoom +/-, compass, and ~~fullscreen~~.
 map.addControl(new maplibregl.NavigationControl());
+
+// Export control lets you print the map to PNG, JPEG, PDF, or SVG.
 map.addControl(new MaplibreExportControl({
     PageSize: Size.A4,
     PageOrientation: PageOrientation.Landscape,
@@ -38,12 +47,20 @@ map.addControl(new MaplibreExportControl({
     Crosshair: false,
     PrintableArea: true
 }), 'top-right');
+
+// Inspect is a 'developer tool' that lets you inspect the map's features.
+// Unfortunately it doesn't work out of the box to inspect the cattracks.
 map.addControl(new MaplibreInspect({
     popup: new maplibregl.Popup({
         closeButton: false,
         closeOnClick: false
     })
 }));
+
+// Draw lets you draw geojson shapes on the map.
+// var Draw = new MapboxDraw();
+// map.addControl(Draw, 'top-left');
+
 // map.addControl(new maplibregl.TerrainControl({
 //     source: "terrain"
 // }));

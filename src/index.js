@@ -142,7 +142,7 @@ function fetchLastCats() {
             let $card = $(`
                 <div class="row justify-content-end mb-2">
                     <div class="d-flex">
-                        <div class="card py-0 px-2 ${cardBorder} cat-tracker-card">
+                        <div class="card py-0 px-2 ${cardBorder} cat-tracker-card border-0">
                             <div class="card-body p-1">
                                  <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
                                 <small>${status.properties.Name} - ${status.properties.Activity} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
