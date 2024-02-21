@@ -138,13 +138,17 @@ const servicePrototype = {
     },
 
     addSourceToMap(map) {
+        if (map.getSource(`cattracks-${this.uid}`)) return;
         map.addSource(`cattracks-${this.uid}`, {
             type: 'vector',
             tiles: this.tiles,
             minzoom: this.minzoom,
             maxzoom: this.maxzoom,
         });
+    },
 
+    removeSourceFromMap(map) {
+        map.removeSource(`cattracks-${this.uid}`);
     },
 
     addLayerToMap(map, layerType) {

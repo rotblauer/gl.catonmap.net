@@ -187,7 +187,7 @@ function getSnapsLastOpened() {
 
 function setSnapsLastOpened() {
     localStorage.setItem("snaps-last-opened", new Date().toISOString());
-   $(`#snaps-notification`).addClass("d-none");
+    $(`#snaps-notification`).addClass("d-none");
 }
 
 $(`#snaps-view-button`).on("click", setSnapsLastOpened);
@@ -339,6 +339,7 @@ function addCatsnapMarkerToggleControl() {
     //     element: $toggle[0]
     // });
 }
+
 addCatsnapMarkerToggleControl();
 
 function addCatTrackerToggleControl() {
@@ -357,26 +358,42 @@ if (isMobileDevice()) addCatTrackerToggleControl();
 
 // Update the select option to whatever style is stateful.
 document.getElementById('mapstyle-select').value = getState().style;
+
+
+// > Unlike a mapping library like Leaflet, Mapbox GL JS doesn't have a concept of "basemap" vs "other layers."
+// All layers are part of the same entity: the style. So you need to keep some state of the data layer
+// around and call its source/addLayer on each change.
+// https://stackoverflow.com/questions/36168658/mapbox-gl-setstyle-removes-layers
 $(`.mapstyles-select`).on("change", (e) => {
     const style = e.target.value;
+
+    // https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#setstyle
+    map.setStyle(style, {
+        // https://maplibre.org/maplibre-gl-js/docs/API/types/StyleSwapOptions/
+        diff: false, 
+    });
     setState("style", style);
-    map.setStyle(style);
-    setState("style", style);
+
+    // Hide the offcanvas if it's open on mobile.
+    // Users want to see the new map they just selected.
     if (isMobileDevice()) {
         let myOffCanvas = document.getElementById("offcanvasNavbarServices");
         let openedCanvas = bootstrap.Offcanvas.getInstance(myOffCanvas);
         openedCanvas.hide();
     }
-    // HACKY shit.
+
+    // HACKY shit... ?
     // https://github.com/mapbox/mapbox-gl-js/issues/4006
     // https://github.com/mapbox/mapbox-gl-js/issues/8660
     // When you call map.setStyle, it destroys everything.
     // So we have to reload all the service layers from scratch.
-    setTimeout(() => {
+    // See comment above.
+
+    map.once("styledata", () => {
         globalServices.forEach((service) => {
             service.addSourceToMap(map);
             service.initFromState(map);
         })
-    }, 1000);
+    });
 });
 
