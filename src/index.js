@@ -355,6 +355,8 @@ function addCatTrackerToggleControl() {
 
 if (isMobileDevice()) addCatTrackerToggleControl();
 
+// Update the select option to whatever style is stateful.
+document.getElementById('mapstyle-select').value = getState().style;
 $(`.mapstyles-select`).on("change", (e) => {
     const style = e.target.value;
     setState("style", style);
@@ -377,3 +379,4 @@ $(`.mapstyles-select`).on("change", (e) => {
         })
     }, 1000);
 });
+

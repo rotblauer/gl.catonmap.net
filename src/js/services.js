@@ -40,28 +40,58 @@ const servicePrototype = {
         const densityAttr = this.getLayerAttribute("point_count");
         const initialState = getState();
         let $serviceOptions = $(`
-        <div id="layer-options-${this.uid}" class="service-layer-options">
+        <div id="layer-options-${this.uid}" class="service-layer-options mb-2 p-2">
             <p class="text mb-1">${true ? '<b>' + this.uid + '</b>' : this.uid}
-            ${this.uid === "edge" ? '<small class="text-info"><i> - an aggregate of the latest tracks for all cats pending master tile generation.</i></small>' : ''}
-            ${this.uid === "devop" ? '<small class="text-info"><i> - an aggregate of penultimate tracks for all cats pending master tile generation.</i></small>' : ''}
+            ${this.uid === "edge" ? '<small class="text-info"><i> - an aggregate of the <b>latest</b> tracks for all cats pending master tile generation.</i></small>' : ''}
+            ${this.uid === "devop" ? '<small class="text-info"><i> - an aggregate of <b>penultimate</b> tracks for all cats pending master tile generation.</i></small>' : ''}
             </p>
-            <div id="" class="border-0">
+            <div class="mt-1">
+                <blockquote style="font-size: small;" class="text-muted mb-0">
+                    <b>${this.tilestats.layers[0].count}</b> points, ${new Date(this.getLayerAttribute("UnixTime").values[1] * 1000).toLocaleDateString()} to ${new Date(this.getLayerAttribute("UnixTime").max * 1000).toLocaleString()} 
+                </blockquote>
+                <!--
+                <ul class="" style="font-size: smaller;">
+                    <li><span class="text-muted">Points count: ${this.tilestats.layers[0].count}</span></li>
+                    <li><span class="text-muted">Points range: ${new Date(this.getLayerAttribute("UnixTime").values[1] * 1000).toLocaleDateString()} → ${new Date(this.getLayerAttribute("UnixTime").max * 1000).toLocaleString()}
+                        </span></li>
+                </ul>
+                -->
+            </div>
+            <div id="" class="border-0 mt-1">
                 
                 <div class="d-flex ">
                 <div class="form-control border-0">
                 <div class="form-check form-switch">
                     <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-CatColor">Cat Color</label>
                 </div>
-                <div class="form-check form-switch">
-                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Activity">Activity<sup class="text-muted">*</sup></label>
+                <div class="row justify-content-around">
+                    <div class="col">
+                        <div class="form-check form-switch">
+                          <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Activity">Activities</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <small style="font-size: 0.4rem;"><span style="background-color: #f32d2d; color: white;" class="badge rounded-pill">&nbsp;</span></small>
+                        <small style="font-size: 0.4rem;"><span style="background-color: #e78719; color: white;" class="badge rounded-pill">&nbsp;</span></small>
+                        <small style="font-size: 0.4rem;"><span style="background-color: #028532; color: white;" class="badge rounded-pill">&nbsp;</span></small>
+                        <small style="font-size: 0.4rem;"><span style="background-color: #1238f6; color: white;" class="badge rounded-pill">&nbsp;</span></small>
+                        <small style="font-size: 0.4rem;"><span style="background-color: #be00ff; color: white;" class="badge rounded-pill">&nbsp;</span></small>
+                        <small style="font-size: 0.4rem;"><span style="background-color: #000000; color: white;" class="badge rounded-pill">&nbsp;</span></small> 
+                    </div>
                 </div>
-                <div class="form-check form-switch">
-                  <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Density">Density <span>&nbsp;&nbsp;&nbsp;</span> 
-                  <small class="text-muted">${densityAttr.min}</small> 
-                  <div class="color-swatch" style="height: 0.8rem !important; width: 4rem !important; background: linear-gradient(90deg, ${ColorMap.density.min + "FF"} 0%, ${ColorMap.density.max + "FF"} 100%);"></div>
-                  <small class="text-muted">${densityAttr.max}</small> 
-                  </label>
+                <div class="row justify-content-around">
+                    <div class="col">
+                        <div class="form-check form-switch">
+                          <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Density">Density</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <small style="font-size: x-small;" class="text-muted">${densityAttr.min}</small> 
+                        <div class="color-swatch" style="height: 0.8rem !important; width: 4rem !important; background: linear-gradient(90deg, ${ColorMap.density.min + "FF"} 0%, ${ColorMap.density.max + "FF"} 100%);"></div>
+                        <small style="font-size: x-small;" class="text-muted">${densityAttr.max}</small>
+                    </div>
                 </div>
+                
                 </div>
                 </div>
                 
@@ -69,13 +99,6 @@ const servicePrototype = {
 <!--                    <hr class="dropdown-divider">-->
 <!--                </li>-->
                 
-                <div class="mt-1">
-                    <ul class="" style="font-size: smaller;">
-                        <li><span class="text-muted">Points count: ${this.tilestats.layers[0].count}</span></li>
-                        <li><span class="text-muted">Points range: 
-                            ${new Date(this.getLayerAttribute("UnixTime").values[1] * 1000).toLocaleDateString()} → ${new Date(this.getLayerAttribute("UnixTime").max * 1000).toLocaleString()}</span></li>
-                    </ul>
-                </div>
             </div>
         </div>
       `);
