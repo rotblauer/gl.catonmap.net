@@ -52,14 +52,15 @@ export const AntPathPaint = {
             ...function () {
                 let arr = [];
                 for (let [k, v] of Object.entries(colorMap.activity)) {
-                    arr.push(k, Color(v).lighten(0.7).hex());
+                    // arr.push(k, Color(v).lighten(0.7).hex());
+                        arr.push(k, v);
                 }
                 return arr;
             }(),
             /* else */ '#000000',
         ],
         'line-width': 4,
-        'line-opacity': 0.3,
+        'line-opacity': 1,
     },
     'dashed': {
             // 'line-color': '#1238f6',
@@ -69,7 +70,7 @@ export const AntPathPaint = {
                 ...function () {
                     let arr = [];
                     for (let [k, v] of Object.entries(colorMap.activity)) {
-                        arr.push(k, v);
+                        arr.push(k, "#FFFFFF");
                     }
                     return arr;
                 }(),
