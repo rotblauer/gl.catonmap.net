@@ -34,6 +34,7 @@ import map from '@/js/map'
 import {Service} from '@/js/services'
 import {isMobileDevice} from "@/js/device";
 import {getState, setState} from "@/js/state";
+import {AntPathPaint, AntpathDashArraySequence} from "@/js/map_paint";
 
 console.debug("state", getState());
 
@@ -90,6 +91,118 @@ fetch("https://mb.tiles.catonmap.info/services").then((res) => {
     console.error("err", err);
 });
 
+
+// mapAreStylesLoaded is used to prevent the animation from running before the style is loaded.
+// This can happen when the map style is changed, causing the sources to get removed.
+// So the on-select watcher will toggle this value to false, and the styledata event will toggle it back to true.
+let mapAreStylesLoaded = true;
+
+async function fetchLineStringsForCat(cat) {
+    // const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7 /* days */; // start time in unix seconds of T-1day
+    const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 18; // T-20hours
+    const timeEnd = Math.floor(Date.now() / 1000);
+    const params = new URLSearchParams({
+        uuids: cat.properties.UUID,
+        tstart: timeStart,
+        tend: timeEnd,
+    });
+    const target = new URL(`https://cattracks.cc/linestring?${params.toString()}`).toString();
+
+    return fetch(target).then((res) => {
+        return res.json();
+    }).then((featureCollection) => {
+        // FILTER AND SORT
+
+        // Filter them to be at least 0.4 km and 2 minutes.
+        featureCollection.features = featureCollection.features.filter(feature => {
+            return feature.properties.MeasuredSimplifiedTraversedKilometers >= 0.4 &&
+                feature.properties.Duration > 60 * 2;
+        });
+
+        // Sort them to be in order of time; latest first.
+        featureCollection.features.sort(function (a, b) {
+            return a.properties.Start < b.properties.Start ? 1 : -1;
+        });
+
+        // console.debug(cat.properties.UUID, "data", featureCollection);
+        return featureCollection;
+    }).then((featureCollection) => {
+
+        // // Only antpath the first (latest) <limit>.
+        // const limit = 2;
+        // if (featureCollection.features.length > limit) {
+        //     featureCollection.features = featureCollection.features.slice(0, limit);
+        // }
+
+
+        if (map.getSource(`linestrings-${cat.properties.UUID}`)) {
+            map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
+        } else {
+            map.addSource(`linestrings-${cat.properties.UUID}`, {
+                type: 'geojson',
+                data: featureCollection,
+            });
+
+            // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/
+            map.addLayer({
+                'id': `linestrings-background-${cat.properties.UUID}`,
+                'type': 'line',
+                'source': `linestrings-${cat.properties.UUID}`,
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': AntPathPaint.background,
+            });
+            map.addLayer({
+                'id': `linestrings-dashed-${cat.properties.UUID}`,
+                'type': 'line',
+                'source': `linestrings-${cat.properties.UUID}`,
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': AntPathPaint.dashed,
+            });
+
+            let step = 0;
+
+            function animateDashArray(timestamp) {
+                // If the styles are not loaded (they have recently changed),
+                // this function will short-circuit.
+                // This approach DEPENDS ON the fact that the styledata event will
+                // call fetchLatestCats, re-initializing the linestrings.
+                if (!mapAreStylesLoaded) {
+                    return;
+                }
+
+                // Update line-dasharray using the next value in AntpathDashArraySequence. The
+                // divisor in the expression `timestamp / 50` controls the animation speed.
+                const newStep = parseInt(
+                    (timestamp / 50) % AntpathDashArraySequence.length
+                );
+
+                if (newStep !== step) {
+                    map.setPaintProperty(
+                        `linestrings-dashed-${cat.properties.UUID}`,
+                        'line-dasharray',
+                        AntpathDashArraySequence[step]
+                    );
+                    step = newStep;
+                }
+
+                // Request the next frame of the animation.
+                requestAnimationFrame(animateDashArray);
+            }
+
+            // start the animation
+            animateDashArray(42);
+        }
+    }).catch((err) => {
+        console.error("err fetching linestrings", err);
+    });
+}
+
 let catMarkers = [];
 
 function fetchLastCats() {
@@ -104,7 +217,10 @@ function fetchLastCats() {
             marker.remove();
         });
         catMarkers = [];
+
         // console.log("data", data);
+
+        // Push the statuses (originally in an object) into an array and sort them by time.
         let statuses = [];
         for (const [catName, status] of Object.entries(data)) {
             statuses.push(status);
@@ -115,6 +231,13 @@ function fetchLastCats() {
         })
         $(`.spinner-border`).hide();
         for (const status of statuses) {
+
+            // LineStrings (async)
+            fetchLineStringsForCat(status).then((lines) => {
+                // console.log("lines", lines);
+            }).catch((err) => {
+                console.error("err", err);
+            });
 
             // Markers
             // console.debug("status", status, "data", data);
@@ -157,7 +280,7 @@ function fetchLastCats() {
                 $clone.on("click", () => {
                     map.flyTo({
                         center: status.geometry.coordinates,
-                        zoom: 13,
+                        // zoom: 13,
                         speed: 1.5,
                     })
                 });
@@ -367,6 +490,10 @@ document.getElementById('mapstyle-select').value = getState().style;
 $(`.mapstyles-select`).on("change", (e) => {
     const style = e.target.value;
 
+    // Toggle the mapAreStylesLoaded to false,
+    // causing the antpath animation to stop.
+    mapAreStylesLoaded = false;
+
     // https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#setstyle
     map.setStyle(style, {
         // https://maplibre.org/maplibre-gl-js/docs/API/types/StyleSwapOptions/
@@ -394,6 +521,12 @@ $(`.mapstyles-select`).on("change", (e) => {
             service.addSourceToMap(map);
             service.initFromState(map);
         })
+
+        // Toggle the global variable allowing the antpath animation to run.
+        mapAreStylesLoaded = true;
+        // ... and refetch the cats (and their linestrings) to resume
+        // with fresh cats and fresh linestrings antpaths.
+        fetchLastCats();
     });
 });
 
