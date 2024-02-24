@@ -276,8 +276,8 @@ async function fetchLastCats() {
             }
             let $card = $(`
                 <div class="row justify-content-end mb-2">
-                    <div class="d-flex">
-                        <div class="card py-0 px-2 ${cardBorder} cat-tracker-card border-0">
+                    <div class="d-flex px-0">
+                        <div class="card ${cardBorder} px-2 cat-tracker-card border-0">
                             <div class="card-body p-1">
                                  <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
                                 <small>${status.properties.Name} - ${status.properties.Activity} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
@@ -306,6 +306,11 @@ async function fetchLastCats() {
     });
 }
 
+function updateCatStatusRefreshProgressBar(percentRemaining) {
+    $(`#catstatus-refetch-timer`).attr("aria-valuenow", `${percentRemaining}`);
+    $(`#catstatus-refetch-timer > .progress-bar`).css("width", `${percentRemaining}%`);
+}
+
 // initCats is a small wrapper around fetchCats which
 // enable the antpath animation, fetches the cats, and
 // sets up recurring polling for new cat statuses.
@@ -316,16 +321,18 @@ async function initCats() {
     // with fresh cats and fresh linestrings antpaths.
     return fetchLastCats().then(() => {
         $(`#catstatus-refetch-timer`).removeClass("d-none");
-        let refetchCountdownRemaining = 1000 * 60;
+        const refreshInterval = 60*1000;
+        let refetchCountdownRemaining = refreshInterval;
+
         setInterval(() => {
             refetchCountdownRemaining -= 1000;
-            let percentRemaining = Math.floor(refetchCountdownRemaining / (60 * 1000) * 100);
-            $(`#catstatus-refetch-timer`).attr("aria-valuenow", `${percentRemaining}`);
-            $(`#catstatus-refetch-timer > .progress-bar`).css("width", `${percentRemaining}%`);
+            let percentRemaining = Math.floor(refetchCountdownRemaining / (refreshInterval) * 100);
+            updateCatStatusRefreshProgressBar(percentRemaining);
         }, 1000);
         setInterval(() => {
-            refetchCountdownRemaining = 1000 * 60;
             fetchLastCats();
+            refetchCountdownRemaining = refreshInterval;
+            updateCatStatusRefreshProgressBar(100);
         }, 1000 * 60);
     });
 }
