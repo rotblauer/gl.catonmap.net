@@ -315,7 +315,18 @@ async function initCats() {
     // ... and refetch the cats (and their linestrings) to resume
     // with fresh cats and fresh linestrings antpaths.
     return fetchLastCats().then(() => {
-        setInterval(fetchLastCats, 1000 * 60);
+        $(`#catstatus-refetch-timer`).removeClass("d-none");
+        let refetchCountdownRemaining = 1000 * 60;
+        setInterval(() => {
+            refetchCountdownRemaining -= 1000;
+            let percentRemaining = Math.floor(refetchCountdownRemaining / (60 * 1000) * 100);
+            $(`#catstatus-refetch-timer`).attr("aria-valuenow", `${percentRemaining}`);
+            $(`#catstatus-refetch-timer > .progress-bar`).css("width", `${percentRemaining}%`);
+        }, 1000);
+        setInterval(() => {
+            refetchCountdownRemaining = 1000 * 60;
+            fetchLastCats();
+        }, 1000 * 60);
     });
 }
 
