@@ -35,6 +35,7 @@ import {Service} from '@/js/services'
 import {isMobileDevice} from "@/js/device";
 import {getState, setState} from "@/js/state";
 import {AntPathPaint, AntpathDashArraySequence} from "@/js/map_paint";
+import {featureCollection} from "@turf/turf";
 
 console.debug("state", getState());
 
@@ -53,53 +54,63 @@ function isServiceEnabled(serviceSummary) {
 }
 
 let globalServices = [];
-fetch("https://mb.tiles.catonmap.info/services").then((res) => {
-    // console.log("res", res);
-    return res.json();
-}).then((serviceSummaries) => {
-    // console.log("data", serviceSummaries);
-    /*
-    [{
-        "imageType": "pbf",
-        "name": "ia.level-23",
-        "url": "https://mb.tiles.catonmap.info/services/ia.level-23",
-    }, ...]
-     */
-    serviceSummaries = serviceSummaries.filter((serviceSummary) => {
-        return isServiceEnabled(serviceSummary);
-    });
 
-    return Promise.all(serviceSummaries.map(ss => fetch(ss.url))).then(responses =>
-        Promise.all(responses.map(res => res.json()))
-    )
-}).then((services) => {
-    services.sort((a, b) => {
-        const serviceA = new Service(a);
-        const serviceB = new Service(b);
-        return serviceB.tilestats.layers[0].count - serviceA.tilestats.layers[0].count;
-    })
-    services.forEach((service) => {
-        service = new Service(service);
-        // service.greet();
-        service.appendHTML(map);
-        service.addSourceToMap(map);
-        // service.addLayerToMap(map);
-        service.initFromState(map);
-        globalServices.push(service);
-    })
-}).catch((err) => {
-    console.error("err", err);
+async function fetchServices() {
+    return fetch("https://mb.tiles.catonmap.info/services").then((res) => {
+        // console.log("res", res);
+        return res.json();
+    }).then((serviceSummaries) => {
+        // console.log("data", serviceSummaries);
+        /*
+        [{
+            "imageType": "pbf",
+            "name": "ia.level-23",
+            "url": "https://mb.tiles.catonmap.info/services/ia.level-23",
+        }, ...]
+         */
+        serviceSummaries = serviceSummaries.filter((serviceSummary) => {
+            return isServiceEnabled(serviceSummary);
+        });
+
+        return Promise.all(serviceSummaries.map(ss => fetch(ss.url))).then(responses =>
+            Promise.all(responses.map(res => res.json()))
+        )
+    }).then((services) => {
+        services.sort((a, b) => {
+            const serviceA = new Service(a);
+            const serviceB = new Service(b);
+            return serviceB.tilestats.layers[0].count - serviceA.tilestats.layers[0].count;
+        })
+        services.forEach((service) => {
+            service = new Service(service);
+            // service.greet();
+            service.appendHTML(map);
+            service.addSourceToMap(map);
+            // service.addLayerToMap(map);
+            service.initFromState(map);
+            globalServices.push(service);
+        })
+    }).catch((err) => {
+        console.error("err", err);
+    });
+}
+
+// Once the map is loaded, fetch the services and initialize the cats.
+// We await the fetchServices to ensure that the services are fetched before
+// the cats are initialized. This ensures that the cat's antpaths are
+// layered on top of any service layers.
+map.once("load", async () => {
+    await fetchServices();
+    return initCats();
 });
 
-
-// mapAreStylesLoaded is used to prevent the animation from running before the style is loaded.
+// antpathStopAnimation is used to prevent the animation from running before the style is loaded.
 // This can happen when the map style is changed, causing the sources to get removed.
 // So the on-select watcher will toggle this value to false, and the styledata event will toggle it back to true.
-let mapAreStylesLoaded = true;
+let antpathStopAnimation = false;
 
 async function fetchLineStringsForCat(cat) {
-    // const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 7 /* days */; // start time in unix seconds of T-1day
-    const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 18; // T-20hours
+    const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 18; // T-18hours
     const timeEnd = Math.floor(Date.now() / 1000);
     const params = new URLSearchParams({
         uuids: cat.properties.UUID,
@@ -164,40 +175,41 @@ async function fetchLineStringsForCat(cat) {
                 },
                 'paint': AntPathPaint.dashed,
             });
+        }
+        return featureCollection;
+    }).then(featureCollection => {
+        let step = 0;
 
-            let step = 0;
-
-            function animateDashArray(timestamp) {
-                // If the styles are not loaded (they have recently changed),
-                // this function will short-circuit.
-                // This approach DEPENDS ON the fact that the styledata event will
-                // call fetchLatestCats, re-initializing the linestrings.
-                if (!mapAreStylesLoaded) {
-                    return;
-                }
-
-                // Update line-dasharray using the next value in AntpathDashArraySequence. The
-                // divisor in the expression `timestamp / 50` controls the animation speed.
-                const newStep = parseInt(
-                    (timestamp / 50) % AntpathDashArraySequence.length
-                );
-
-                if (newStep !== step) {
-                    map.setPaintProperty(
-                        `linestrings-dashed-${cat.properties.UUID}`,
-                        'line-dasharray',
-                        AntpathDashArraySequence[step]
-                    );
-                    step = newStep;
-                }
-
-                // Request the next frame of the animation.
-                requestAnimationFrame(animateDashArray);
+        function animateDashArray(timestamp) {
+            // If the styles are not loaded (they have recently changed),
+            // this function will short-circuit.
+            // This approach DEPENDS ON the fact that the styledata event will
+            // call fetchLatestCats, re-initializing the linestrings.
+            if (antpathStopAnimation) {
+                return;
             }
 
-            // start the animation
-            animateDashArray(42);
+            // Update line-dasharray using the next value in AntpathDashArraySequence. The
+            // divisor in the expression `timestamp / 50` controls the animation speed.
+            const newStep = parseInt(
+                (timestamp / 50) % AntpathDashArraySequence.length
+            );
+
+            if (newStep !== step) {
+                map.setPaintProperty(
+                    `linestrings-dashed-${cat.properties.UUID}`,
+                    'line-dasharray',
+                    AntpathDashArraySequence[step]
+                );
+                step = newStep;
+            }
+
+            // Request the next frame of the animation.
+            requestAnimationFrame(animateDashArray);
         }
+
+        // start the animation
+        animateDashArray(42);
     }).catch((err) => {
         console.error("err fetching linestrings", err);
     });
@@ -205,10 +217,10 @@ async function fetchLineStringsForCat(cat) {
 
 let catMarkers = [];
 
-function fetchLastCats() {
+async function fetchLastCats() {
     $(`.catstatus-container`).empty();
     $(`.spinner-border`).show();
-    fetch("https://api.catonmap.info/lastknown").then((res) => {
+    return fetch("https://api.catonmap.info/lastknown").then((res) => {
         // console.log("res", res);
         return res.json();
     }).then((data) => {
@@ -294,8 +306,20 @@ function fetchLastCats() {
     });
 }
 
-fetchLastCats();
-setInterval(fetchLastCats, 1000 * 60);
+// initCats is a small wrapper around fetchCats which
+// enable the antpath animation, fetches the cats, and
+// sets up recurring polling for new cat statuses.
+async function initCats() {
+    // Toggle the global variable allowing the antpath animation to run.
+    antpathStopAnimation = false;
+    // ... and refetch the cats (and their linestrings) to resume
+    // with fresh cats and fresh linestrings antpaths.
+    return fetchLastCats().then(() => {
+        setInterval(fetchLastCats, 1000 * 60);
+    });
+}
+
+// fetchLastCats();
 
 function getSnapsLastOpened() {
     const defaultDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -315,35 +339,36 @@ function setSnapsLastOpened() {
 
 $(`#snaps-view-button`).on("click", setSnapsLastOpened);
 
-fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30}`).then((res) => {
-    // console.log("res", res);
-    return res.json();
-}).then((data) => {
-    // console.log("data", data);
-    data = data.filter((d) => {
-        return typeof d.properties.imgS3 !== "undefined";
-    })
-    data.sort((a, b) => {
-        return b.properties.UnixTime - a.properties.UnixTime;
-    });
+async function fetchSnaps() {
+    return fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30}`).then((res) => {
+        // console.log("res", res);
+        return res.json();
+    }).then((data) => {
+        // console.log("data", data);
+        data = data.filter((d) => {
+            return typeof d.properties.imgS3 !== "undefined";
+        })
+        data.sort((a, b) => {
+            return b.properties.UnixTime - a.properties.UnixTime;
+        });
 
-    let popupsOnMap = [];
+        let popupsOnMap = [];
 
-    const snapsLastOpened = getSnapsLastOpened();
+        const snapsLastOpened = getSnapsLastOpened();
 
-    data.forEach((snap) => {
-        const s3URL = `https://s3.us-east-2.amazonaws.com/${snap.properties.imgS3}`;
-        const snapTime = new Date(snap.properties.Time);
-        const localTimeStr = snapTime.toLocaleString();
+        data.forEach((snap) => {
+            const s3URL = `https://s3.us-east-2.amazonaws.com/${snap.properties.imgS3}`;
+            const snapTime = new Date(snap.properties.Time);
+            const localTimeStr = snapTime.toLocaleString();
 
-        if (snapTime > snapsLastOpened) {
-            $(`#snaps-notification`).removeClass("d-none");
-        }
+            if (snapTime > snapsLastOpened) {
+                $(`#snaps-notification`).removeClass("d-none");
+            }
 
-        // We'll reuse the card for both the drawer-list view
-        // and the map popup.
-        let $cardImg = $("<img>").attr("src", s3URL).addClass("card-img-top");
-        let $card = $(`
+            // We'll reuse the card for both the drawer-list view
+            // and the map popup.
+            let $cardImg = $("<img>").attr("src", s3URL).addClass("card-img-top");
+            let $card = $(`
             <div class="card mb-2">
                 <div class="card-body">
                   <div class="row justify-content-between">
@@ -363,73 +388,76 @@ fetch(`https://api.catonmap.info/catsnaps?tstart=${Math.floor(Date.now() / 1000)
                 </div>
             </div>
         `)
-        $card.prepend($cardImg);
+            $card.prepend($cardImg);
 
-        // Popup
-        //
-        // Tweak the card content style for the popup.
-        let $popupContent = $card.clone().removeClass("mb-2").addClass("m-0");
-        // Add a link to the image source in the popup.
-        $popupContent.find("img").wrap($("<a>").attr("href", s3URL).attr("target", "_blank"));
-        const popup = new maplibregl.Popup({
-            closeOnClick: true,
-            closeButton: false,
-        })
-            .setLngLat(snap.geometry.coordinates)
-            .setHTML($popupContent[0].outerHTML);
-
-        // Now we can assign the handler to the card image destined for the list view
-        // and add the card to the list.
-        // We don't want to assign the listener to the popup card image
-        // because clicking is supposed to open the popup.
-        $cardImg.on("click", () => {
-            if (!popup.isOpen()) popup.addTo(map);
-            if (isMobileDevice()) {
-                let myOffCanvas = document.getElementById("offcanvasNavbarSnaps");
-                let openedCanvas = bootstrap.Offcanvas.getInstance(myOffCanvas);
-                openedCanvas.hide();
-            }
-            map.flyTo({
-                center: [snap.geometry.coordinates[0], snap.geometry.coordinates[1]],
-                zoom: 15,
-                speed: 1.5,
+            // Popup
+            //
+            // Tweak the card content style for the popup.
+            let $popupContent = $card.clone().removeClass("mb-2").addClass("m-0");
+            // Add a link to the image source in the popup.
+            $popupContent.find("img").wrap($("<a>").attr("href", s3URL).attr("target", "_blank"));
+            const popup = new maplibregl.Popup({
+                closeOnClick: true,
+                closeButton: false,
             })
+                .setLngLat(snap.geometry.coordinates)
+                .setHTML($popupContent[0].outerHTML);
+
+            // Now we can assign the handler to the card image destined for the list view
+            // and add the card to the list.
+            // We don't want to assign the listener to the popup card image
+            // because clicking is supposed to open the popup.
+            $cardImg.on("click", () => {
+                if (!popup.isOpen()) popup.addTo(map);
+                if (isMobileDevice()) {
+                    let myOffCanvas = document.getElementById("offcanvasNavbarSnaps");
+                    let openedCanvas = bootstrap.Offcanvas.getInstance(myOffCanvas);
+                    openedCanvas.hide();
+                }
+                map.flyTo({
+                    center: [snap.geometry.coordinates[0], snap.geometry.coordinates[1]],
+                    zoom: 15,
+                    speed: 1.5,
+                })
+            });
+
+            // Finally append the card to the list.
+            let $listElement = $(`<li class="nav-item"></li>`);
+            $listElement.append($card);
+            $("#catsnaps-list").append($listElement);
+
+            // Markers
+
+            // create a DOM element for the marker
+            let $marker = $(`<div>`);
+            $marker.addClass("snap-marker");
+            $marker.css("background-image", `url(${s3URL})`);
+            $marker.css("background-size", "contain");
+            $marker.css("width", `30px`);
+            $marker.css("height", `30px`);
+            if (!getState().snapmarkers) $marker.css("display", "none");
+
+            // add marker to map
+            let marker = new maplibregl.Marker({element: $marker[0]})
+                .setLngLat(snap.geometry.coordinates)
+                .setPopup(popup);
+
+            marker.addTo(map);
+
+
+            // marker.on('click', () => {
+            //     console.debug("popup.isOpen()", popup.isOpen());
+            //     if (!popup.isOpen()) popup.addTo(map);
+            //     // popup.addTo(map);
+            // });
+
         });
-
-        // Finally append the card to the list.
-        let $listElement = $(`<li class="nav-item"></li>`);
-        $listElement.append($card);
-        $("#catsnaps-list").append($listElement);
-
-        // Markers
-
-        // create a DOM element for the marker
-        let $marker = $(`<div>`);
-        $marker.addClass("snap-marker");
-        $marker.css("background-image", `url(${s3URL})`);
-        $marker.css("background-size", "contain");
-        $marker.css("width", `30px`);
-        $marker.css("height", `30px`);
-        if (!getState().snapmarkers) $marker.css("display", "none");
-
-        // add marker to map
-        let marker = new maplibregl.Marker({element: $marker[0]})
-            .setLngLat(snap.geometry.coordinates)
-            .setPopup(popup);
-
-        marker.addTo(map);
-
-
-        // marker.on('click', () => {
-        //     console.debug("popup.isOpen()", popup.isOpen());
-        //     if (!popup.isOpen()) popup.addTo(map);
-        //     // popup.addTo(map);
-        // });
-
+    }).catch((err) => {
+        console.error("err", err);
     });
-}).catch((err) => {
-    console.error("err", err);
-});
+}
+
+map.once("load", fetchSnaps);
 
 function addCatsnapMarkerToggleControl() {
     let $toggle = $(`
@@ -463,7 +491,6 @@ function addCatsnapMarkerToggleControl() {
     // });
 }
 
-addCatsnapMarkerToggleControl();
 
 function addCatTrackerToggleControl() {
     // d-none d-xs-block d-sm-block d-md-block
@@ -477,7 +504,10 @@ function addCatTrackerToggleControl() {
     $(`.maplibregl-ctrl-top-right`).append($ctrl[0]);
 }
 
-if (isMobileDevice()) addCatTrackerToggleControl();
+map.once("load", () => {
+    addCatsnapMarkerToggleControl();
+    if (isMobileDevice()) addCatTrackerToggleControl();
+});
 
 // Update the select option to whatever style is stateful.
 document.getElementById('mapstyle-select').value = getState().style;
@@ -490,9 +520,9 @@ document.getElementById('mapstyle-select').value = getState().style;
 $(`.mapstyles-select`).on("change", (e) => {
     const style = e.target.value;
 
-    // Toggle the mapAreStylesLoaded to false,
+    // Toggle the antpathStopAnimation to true,
     // causing the antpath animation to stop.
-    mapAreStylesLoaded = false;
+    antpathStopAnimation = true;
 
     // https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#setstyle
     map.setStyle(style, {
@@ -523,7 +553,7 @@ $(`.mapstyles-select`).on("change", (e) => {
         })
 
         // Toggle the global variable allowing the antpath animation to run.
-        mapAreStylesLoaded = true;
+        antpathStopAnimation = false;
         // ... and refetch the cats (and their linestrings) to resume
         // with fresh cats and fresh linestrings antpaths.
         fetchLastCats();
