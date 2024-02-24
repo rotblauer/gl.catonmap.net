@@ -99,6 +99,7 @@ async function fetchServices() {
 // We await the fetchServices to ensure that the services are fetched before
 // the cats are initialized. This ensures that the cat's antpaths are
 // layered on top of any service layers.
+// Obviously this is not the ideal way to manage layer ordering (TODO).
 map.once("load", async () => {
     await fetchServices();
     return initCats();
@@ -144,7 +145,6 @@ async function fetchLineStringsForCat(cat) {
         // if (featureCollection.features.length > limit) {
         //     featureCollection.features = featureCollection.features.slice(0, limit);
         // }
-
 
         if (map.getSource(`linestrings-${cat.properties.UUID}`)) {
             map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
@@ -463,20 +463,20 @@ function addCatsnapMarkerToggleControl() {
     let $toggle = $(`
         <div id="catsnap-marker-toggle" class="maplibregl-ctrl maplibregl-ctrl-group">
             <button class="maplibregl-ctrl-icon btn" title="Toggle Cat Snap Markers">
-                <i class="bi-camera"></i>
+                <i class="bi-camera-fill"></i>
             </button>
         </div>
     `);
 
-    if (getState().snapmarkers) $toggle.find("button").addClass("btn-outline-success");
+    if (getState().snapmarkers) $toggle.find("button").addClass("bg-success").find("i").addClass("text-white");
 
     $toggle.on("click", () => {
         const newMarkerState = getState().snapmarkers ? null : true; // delete the param if false
         setState("snapmarkers", newMarkerState);
         if (newMarkerState) {
-            $toggle.find("button").addClass("btn-outline-success");
+            $toggle.find("button").addClass("bg-success").find("i").addClass("text-white");
         } else {
-            $toggle.find("button").removeClass("btn-outline-success");
+            $toggle.find("button").removeClass("bg-success").find("i").removeClass("text-white");
         }
 
         let markers = document.getElementsByClassName("snap-marker");
