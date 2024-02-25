@@ -95,6 +95,140 @@ async function fetchServices() {
     });
 }
 
+let catStatuses = [];
+let catMarkers = [];
+
+function getCatStatus(uuid) {
+    return catStatuses.find((status) => {
+        return status.properties.UUID === uuid;
+    });
+}
+
+function updateCatStatus(status) {
+    // LineStrings (async)
+    fetchLineStringsForCat(status).then((lines) => {
+        // console.log("lines", lines);
+    }).catch((err) => {
+        console.error("err", err);
+    });
+
+    let foundCatStatus = false;
+    for (let i = 0; i < catStatuses.length; i++) {
+        if (catStatuses[i].properties.UUID === status.properties.UUID) {
+            catStatuses[i] = status;
+            foundCatStatus = true;
+        }
+    }
+    if (!foundCatStatus) {
+        catStatuses.push(status);
+    }
+
+    catStatuses.sort((a, b) => {
+        return b.properties.UnixTime - a.properties.UnixTime;
+    })
+
+    // Clear the status container and re-install the sorted statuses.
+    $(`.catstatus-container`).empty();
+    for (const status of catStatuses) {
+        // Status Cards
+        let cardBorder = "";
+        if (/^rye/.test(status.properties.Name.toLowerCase())) {
+            cardBorder = "text-bg-primary";
+        } else if (/moto/.test(status.properties.Name.toLowerCase())) {
+            cardBorder = "text-bg-danger";
+        }
+        let $card = $(`
+            <div class="row justify-content-end mb-2">
+                <div class="d-flex px-0">
+                    <div class="card ${cardBorder} px-2 cat-tracker-card border-0">
+                        <div class="card-body p-1">
+                             <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
+                            <small>${status.properties.Name} - ${status.properties.Activity} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        $(`.catstatus-container`).each(function () {
+            let $clone = $card.clone();
+            $clone.on("click", () => {
+                map.flyTo({
+                    center: status.geometry.coordinates,
+                    // zoom: 13,
+                    speed: 1.5,
+                })
+            });
+            $(this).append($clone);
+        })
+    }
+}
+
+
+async function animateCatPath(status, features) {
+
+    const thisAnimationStatus = status.properties.UnixTime;
+
+    // Get or init the cat marker.
+    let catMarker;
+    // Find the cat marker.
+    for (let marker of catMarkers) {
+        if (marker.getElement().getAttribute('data-cat-uuid') === features[0].properties.UUID) {
+            catMarker = marker;
+        }
+    }
+    if (typeof catMarker === "undefined") {
+        // Create a new cat marker.
+        let $marker = $(`<div>`);
+        $marker.attr("data-cat-uuid", status.properties.UUID);
+        $marker.addClass("cat-marker");
+        $marker.css("background-image", `url(/assets/cat-icon.png)`);
+        $marker.css("background-size", "contain");
+        $marker.css("width", `30px`);
+        $marker.css("height", `30px`);
+
+        // add marker to map
+        catMarker = new maplibregl.Marker({element: $marker[0]})
+            .setLngLat(features[0].geometry.coordinates);
+        catMarkers.push(catMarker);
+        catMarker.addTo(map);
+    }
+    // Range over all features...
+    for (let i = 0; i < features.length; i++) {
+        // This is an async function, so it can be called in parallel.
+        // We need to only animate the cat marker if the status is the same as when the animation was started.
+        if (getCatStatus(status.properties.UUID).properties.UnixTime !== thisAnimationStatus) {
+            return;
+        }
+        // ... and animate the cat marker along the path.
+        catMarker.setLngLat(features[i].geometry.coordinates);
+        const nextFeature = features[i + 1];
+        const timeDeltaNext = nextFeature ? nextFeature.properties.UnixTime - features[i].properties.UnixTime : 0;
+        await new Promise(r => setTimeout(r, timeDeltaNext * 1000));
+    }
+}
+
+function setupWebsocket() {
+    // Create WebSocket connection.
+    const socket = new WebSocket("wss://api.catonmap.info/socat");
+
+// Connection opened
+    socket.addEventListener("open", (event) => {
+        // socket.send("Hello Server!");
+    });
+
+// Listen for messages
+    socket.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        // console.log("Message from server ", data);
+        if (data.action === "populate") {
+            const catStatus = data.features[data.features.length - 1]; // last feature is current status
+            updateCatStatus(catStatus);
+            animateCatPath(catStatus, data.features);
+        }
+    });
+}
+
 // Once the map is loaded, fetch the services and initialize the cats.
 // We await the fetchServices to ensure that the services are fetched before
 // the cats are initialized. This ensures that the cat's antpaths are
@@ -102,7 +236,8 @@ async function fetchServices() {
 // Obviously this is not the ideal way to manage layer ordering (TODO).
 map.once("load", async () => {
     await fetchServices();
-    return initCats();
+    setupWebsocket();
+    // return initCats();
 });
 
 // antpathStopAnimation is used to prevent the animation from running before the style is loaded.
@@ -139,7 +274,7 @@ async function fetchLineStringsForCat(cat) {
         // console.debug(cat.properties.UUID, "data", featureCollection);
         return featureCollection;
     }).then((featureCollection) => {
-
+        if (featureCollection.features.length === 0) return featureCollection;
         // // Only antpath the first (latest) <limit>.
         // const limit = 2;
         // if (featureCollection.features.length > limit) {
@@ -178,9 +313,13 @@ async function fetchLineStringsForCat(cat) {
         }
         return featureCollection;
     }).then(featureCollection => {
+        if (featureCollection.length === 0) return;
         let step = 0;
 
         function animateDashArray(timestamp) {
+            const layerID = `linestrings-dashed-${cat.properties.UUID}`;
+            if (!map.getLayer(layerID)) return;
+
             // If the styles are not loaded (they have recently changed),
             // this function will short-circuit.
             // This approach DEPENDS ON the fact that the styledata event will
@@ -197,7 +336,7 @@ async function fetchLineStringsForCat(cat) {
 
             if (newStep !== step) {
                 map.setPaintProperty(
-                    `linestrings-dashed-${cat.properties.UUID}`,
+                    layerID,
                     'line-dasharray',
                     AntpathDashArraySequence[step]
                 );
@@ -215,7 +354,6 @@ async function fetchLineStringsForCat(cat) {
     });
 }
 
-let catMarkers = [];
 
 async function fetchLastCats() {
     $(`.catstatus-container`).empty();
@@ -225,10 +363,10 @@ async function fetchLastCats() {
         return res.json();
     }).then((data) => {
 
-        catMarkers.forEach((marker) => {
-            marker.remove();
-        });
-        catMarkers = [];
+        // catMarkers.forEach((marker) => {
+        //     marker.remove();
+        // });
+        // catMarkers = [];
 
         // console.log("data", data);
 
@@ -241,63 +379,64 @@ async function fetchLastCats() {
         statuses.sort((a, b) => {
             return b.properties.UnixTime - a.properties.UnixTime;
         })
-        $(`.spinner-border`).hide();
+        // $(`.spinner-border`).hide();
         for (const status of statuses) {
 
-            // LineStrings (async)
-            fetchLineStringsForCat(status).then((lines) => {
-                // console.log("lines", lines);
-            }).catch((err) => {
-                console.error("err", err);
-            });
+            // // LineStrings (async)
+            // fetchLineStringsForCat(status).then((lines) => {
+            //     // console.log("lines", lines);
+            // }).catch((err) => {
+            //     console.error("err", err);
+            // });
 
-            // Markers
-            // console.debug("status", status, "data", data);
-            let $marker = $(`<div>`);
-            $marker.addClass("cat-marker");
-            $marker.css("background-image", `url(/assets/cat-icon.png)`);
-            $marker.css("background-size", "contain");
-            $marker.css("width", `30px`);
-            $marker.css("height", `30px`);
+            // // Markers
+            // // console.debug("status", status, "data", data);
+            // let $marker = $(`<div>`);
+            // $marker.addClass("cat-marker");
+            // $marker.attr("data-cat-uuid", status.properties.UUID);
+            // $marker.css("background-image", `url(/assets/cat-icon.png)`);
+            // $marker.css("background-size", "contain");
+            // $marker.css("width", `30px`);
+            // $marker.css("height", `30px`);
+            //
+            // // add marker to map
+            // let marker = new maplibregl.Marker({element: $marker[0]})
+            //     .setLngLat(status.geometry.coordinates);
+            //
+            // marker.addTo(map);
+            // catMarkers.push(marker);
 
-            // add marker to map
-            let marker = new maplibregl.Marker({element: $marker[0]})
-                .setLngLat(status.geometry.coordinates);
-
-            marker.addTo(map);
-            catMarkers.push(marker);
-
-            // Status Cards
-            let cardBorder = "";
-            if (/^rye/.test(status.properties.Name.toLowerCase())) {
-                cardBorder = "text-bg-primary";
-            } else if (/moto/.test(status.properties.Name.toLowerCase())) {
-                cardBorder = "text-bg-danger";
-            }
-            let $card = $(`
-                <div class="row justify-content-end mb-2">
-                    <div class="d-flex px-0">
-                        <div class="card ${cardBorder} px-2 cat-tracker-card border-0">
-                            <div class="card-body p-1">
-                                 <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
-                                <small>${status.properties.Name} - ${status.properties.Activity} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `);
-
-            $(`.catstatus-container`).each(function () {
-                let $clone = $card.clone();
-                $clone.on("click", () => {
-                    map.flyTo({
-                        center: status.geometry.coordinates,
-                        // zoom: 13,
-                        speed: 1.5,
-                    })
-                });
-                $(this).append($clone);
-            })
+            // // Status Cards
+            // let cardBorder = "";
+            // if (/^rye/.test(status.properties.Name.toLowerCase())) {
+            //     cardBorder = "text-bg-primary";
+            // } else if (/moto/.test(status.properties.Name.toLowerCase())) {
+            //     cardBorder = "text-bg-danger";
+            // }
+            // let $card = $(`
+            //     <div class="row justify-content-end mb-2">
+            //         <div class="d-flex px-0">
+            //             <div class="card ${cardBorder} px-2 cat-tracker-card border-0">
+            //                 <div class="card-body p-1">
+            //                      <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
+            //                     <small>${status.properties.Name} - ${status.properties.Activity} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
+            //                 </div>
+            //             </div>
+            //         </div>
+            //     </div>
+            // `);
+            //
+            // $(`.catstatus-container`).each(function () {
+            //     let $clone = $card.clone();
+            //     $clone.on("click", () => {
+            //         map.flyTo({
+            //             center: status.geometry.coordinates,
+            //             // zoom: 13,
+            //             speed: 1.5,
+            //         })
+            //     });
+            //     $(this).append($clone);
+            // })
 
         }
 
@@ -306,36 +445,36 @@ async function fetchLastCats() {
     });
 }
 
-function updateCatStatusRefreshProgressBar(percentRemaining) {
-    $(`#catstatus-refetch-timer`).attr("aria-valuenow", `${percentRemaining}`);
-    $(`#catstatus-refetch-timer > .progress-bar`).css("width", `${percentRemaining}%`);
-}
+// function updateCatStatusRefreshProgressBar(percentRemaining) {
+//     $(`#catstatus-refetch-timer`).attr("aria-valuenow", `${percentRemaining}`);
+//     $(`#catstatus-refetch-timer > .progress-bar`).css("width", `${percentRemaining}%`);
+// }
 
-// initCats is a small wrapper around fetchCats which
-// enable the antpath animation, fetches the cats, and
-// sets up recurring polling for new cat statuses.
-async function initCats() {
-    // Toggle the global variable allowing the antpath animation to run.
-    antpathStopAnimation = false;
-    // ... and refetch the cats (and their linestrings) to resume
-    // with fresh cats and fresh linestrings antpaths.
-    return fetchLastCats().then(() => {
-        $(`#catstatus-refetch-timer`).removeClass("d-none");
-        const refreshInterval = 60*1000;
-        let refetchCountdownRemaining = refreshInterval;
-
-        setInterval(() => {
-            refetchCountdownRemaining -= 1000;
-            let percentRemaining = Math.floor(refetchCountdownRemaining / (refreshInterval) * 100);
-            updateCatStatusRefreshProgressBar(percentRemaining);
-        }, 1000);
-        setInterval(() => {
-            fetchLastCats();
-            refetchCountdownRemaining = refreshInterval;
-            updateCatStatusRefreshProgressBar(100);
-        }, 1000 * 60);
-    });
-}
+// // initCats is a small wrapper around fetchCats which
+// // enable the antpath animation, fetches the cats, and
+// // sets up recurring polling for new cat statuses.
+// async function initCats() {
+//     // Toggle the global variable allowing the antpath animation to run.
+//     antpathStopAnimation = false;
+//     // ... and refetch the cats (and their linestrings) to resume
+//     // with fresh cats and fresh linestrings antpaths.
+//     return fetchLastCats().then(() => {
+//         $(`#catstatus-refetch-timer`).removeClass("d-none");
+//         const refreshInterval = 60*1000;
+//         let refetchCountdownRemaining = refreshInterval;
+//
+//         setInterval(() => {
+//             refetchCountdownRemaining -= 1000;
+//             let percentRemaining = Math.floor(refetchCountdownRemaining / (refreshInterval) * 100);
+//             updateCatStatusRefreshProgressBar(percentRemaining);
+//         }, 1000);
+//         setInterval(() => {
+//             fetchLastCats();
+//             refetchCountdownRemaining = refreshInterval;
+//             updateCatStatusRefreshProgressBar(100);
+//         }, 1000 * 60);
+//     });
+// }
 
 // fetchLastCats();
 
