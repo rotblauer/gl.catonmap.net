@@ -28,7 +28,7 @@ version	"2"
  */
 
 import $ from 'jquery';
-import {Density, Activity, CatColor, ColorMap} from './map_paint';
+import {Density, Activity, CatColor, ColorMap, Recency} from './map_paint';
 import {getState, setState} from "@/js/state";
 
 const servicePrototype = {
@@ -38,6 +38,7 @@ const servicePrototype = {
 
     appendHTML(map) {
         const densityAttr = this.getLayerAttribute("point_count");
+        const recencyAttr = this.getLayerAttribute("UnixTime");
         const initialState = getState();
         let $serviceOptions = $(`
         <div id="layer-options-${this.uid}" class="service-layer-options mb-2 p-2">
@@ -61,9 +62,11 @@ const servicePrototype = {
                 
                 <div class="d-flex ">
                 <div class="form-control border-0">
+<!--                CAT COLOR-->
                 <div class="form-check form-switch">
                     <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-CatColor">Cat Color</label>
                 </div>
+<!--                ACTIVITY-->
                 <div class="row justify-content-around">
                     <div class="col">
                         <div class="form-check form-switch">
@@ -79,6 +82,7 @@ const servicePrototype = {
                         <small style="font-size: 0.4rem;"><span style="background-color: #000000; color: white;" class="badge rounded-pill">&nbsp;</span></small> 
                     </div>
                 </div>
+<!--                DENSITY-->
                 <div class="row justify-content-around">
                     <div class="col">
                         <div class="form-check form-switch">
@@ -87,8 +91,21 @@ const servicePrototype = {
                     </div>
                     <div class="col">
                         <small style="font-size: x-small;" class="text-muted">1</small> 
-                        <div class="color-swatch" style="height: 0.8rem !important; width: 4rem !important; background: linear-gradient(90deg, ${ColorMap.density.min + "FF"} 0%, ${ColorMap.density.max + "FF"} 100%);"></div>
+                        <div class="color-swatch mx-0" style="height: 0.8rem !important; width: 4rem !important; background: linear-gradient(90deg, ${ColorMap.density.min + "FF"} 0%, ${ColorMap.density.max + "FF"} 100%);"></div>
                         <small style="font-size: x-small;" class="text-muted">${densityAttr.max}</small>
+                    </div>
+                </div>
+<!--                RECENCY                -->
+                <div class="row justify-content-around">
+                    <div class="col">
+                        <div class="form-check form-switch">
+                          <label class="form-check-label" for="flexSwitchCheckLayer-${this.uid}-Recency">Recency</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <small style="font-size: x-small;" class="text-muted">${new Date((/^rye/.test(this.uid) ? 1324918983 : recencyAttr.min) * 1000).toLocaleDateString()}</small> 
+                        <div class="color-swatch mx-0" style="height: 0.8rem !important; width: 4rem !important; background: linear-gradient(90deg, ${ColorMap.density.min + "FF"} 0%, ${ColorMap.density.max + "FF"} 100%);"></div>
+                        <small style="font-size: x-small;" class="text-muted">now</small>
                     </div>
                 </div>
                 
@@ -135,6 +152,11 @@ const servicePrototype = {
         const $catDensitySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Density" ${densityEnabled ? 'checked' : ''}>`);
         $catDensitySwitcher.change(checkboxLayerSwitcherFunction(this, $catDensitySwitcher, "density"))
         $serviceOptions.find(".form-check:eq(2)").prepend($catDensitySwitcher);
+
+        const recencyEnabled = initialState[`layer-${this.uid}-recency`];
+        const $catRecencySwitcher = $(`<input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckLayer-${this.uid}-Recency" ${recencyEnabled ? 'checked' : ''}>`);
+        $catRecencySwitcher.change(checkboxLayerSwitcherFunction(this, $catRecencySwitcher, "recency"))
+        $serviceOptions.find(".form-check:eq(3)").prepend($catRecencySwitcher);
     },
 
     addSourceToMap(map) {
@@ -158,6 +180,7 @@ const servicePrototype = {
             'source': `cattracks-${this.uid}`,
             'source-layer': `${this.vector_layers[0].id}`,
             'paint': null,
+            'filter': ['>', 'UnixTime', 0],
         };
         switch (layerType) {
             case "catcolor":
@@ -168,6 +191,9 @@ const servicePrototype = {
                 break;
             case "density":
                 layerOpts.paint = Density(this);
+                break;
+            case "recency":
+                layerOpts.paint = Recency(this);
                 break;
         }
         if (map.getLayer(layerOpts.id)) map.removeLayer(layerOpts.id);
@@ -190,6 +216,9 @@ const servicePrototype = {
         }
         if (state[`layer-${this.uid}-density`]) {
             this.addLayerToMap(map, "density");
+        }
+        if (state[`layer-${this.uid}-recency`]) {
+            this.addLayerToMap(map, "recency");
         }
     },
 

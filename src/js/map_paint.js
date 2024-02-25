@@ -172,3 +172,62 @@ export function Density(service) {
         ],
     };
 }
+
+export function Recency(service) {
+    // const attrPointCount = service.getLayerAttribute('point_count');
+    const attrUnixTime = service.getLayerAttribute('UnixTime');
+    let attrUnixTimeMin = attrUnixTime.min;
+    if (/^rye/.test(service.uid)) {
+        /*
+        attribute	"UnixTime"
+        count	1000
+        max	1708750380
+        min	-2177449139
+        type	"number"
+        values
+        0	-2177449139
+        1	1272964512
+        2	1324918983
+        3	1324920937
+        4	1324930002
+        5	1325073179
+        6	1325076786
+         */
+        attrUnixTimeMin = 1324918983;
+    }
+    return {
+        'circle-radius': [
+            'case',
+            ['!', ['has', 'UnixTime']], 1,
+            [
+                'interpolate',
+                ['linear'],
+                ['get', 'UnixTime'],
+                attrUnixTimeMin, 1,
+                attrUnixTime.max, 3,
+            ],
+        ],
+        'circle-opacity': [
+            'case',
+            ['!', ['has', 'UnixTime']], 0.1,
+            [
+                'interpolate',
+                ['linear'],
+                ['get', 'UnixTime'],
+                attrUnixTimeMin, 0,
+                attrUnixTime.max, 1,
+            ],
+        ],
+        'circle-color': [
+            'case',
+            ['!', ['has', 'UnixTime']], colorMap.density.min,
+            [
+                'interpolate',
+                ['linear'],
+                ['get', 'UnixTime'],
+                attrUnixTimeMin, ['to-color', colorMap.density.min],
+                attrUnixTime.max, ['to-color', colorMap.density.max],
+            ],
+        ],
+    };
+}
