@@ -97,14 +97,15 @@ export function Activity() {
             }(),
             /* else */ '#000000',
         ],
-        'circle-radius': 1.6,
+        // 'circle-blur': 0,
+        'circle-radius': 2,
         'circle-opacity': 1,
     };
 }
 
 export function CatColor(catAlias) {
     var _default = {
-        'circle-radius': 1.42,
+        'circle-radius': 2,
         'circle-opacity': 1,
         'circle-color': '#000000',
     };
@@ -136,15 +137,26 @@ export function Density(service) {
     const attrPointCount = service.getLayerAttribute('point_count');
     const attrAccuracy = service.getLayerAttribute('Accuracy');
     return {
+        'circle-blur': [
+            'case',
+            ['!', ['has', 'point_count']], 1,
+            [
+                'interpolate',
+                ['linear'],
+                ['get', 'point_count'],
+                attrPointCount.min, 0,
+                attrPointCount.max, 2,
+            ],
+        ],
         'circle-radius': [
             'case',
             ['!', ['has', 'point_count']], 1,
             [
                 'interpolate',
-                ['exponential', 0.99],
+                ['exponential', 0.995],
                 ['get', 'point_count'],
                 attrPointCount.min, 1,
-                attrPointCount.max, 3,
+                attrPointCount.max, 4,
             ],
         ],
         'circle-opacity': [
