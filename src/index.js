@@ -405,7 +405,7 @@ async function fetchLineStringsForCat(cat) {
     }).then((featureCollection) => {
         if (featureCollection.features.length === 0) return featureCollection;
         if (catLinestringCache[cat.properties.UUID] &&
-            JSON.stringify(catLinestringCache[cat.properties.UUID] === JSON.stringify(featureCollection))) {
+            JSON.stringify(catLinestringCache[cat.properties.UUID]) === JSON.stringify(featureCollection)) {
             return {features: []};
         }
         catLinestringCache[cat.properties.UUID] = featureCollection;
