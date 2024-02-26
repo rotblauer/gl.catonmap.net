@@ -131,6 +131,15 @@ export function subscribeState(k, callback, optionalLabel) {
     subscribers[k][label] = callback;
 }
 
+export function subscribeStateAndCall(k, callback, optionalLabel) {
+    if (!subscribers[k]) {
+        subscribers[k] = {};
+    }
+    const label = optionalLabel || Object.keys(subscribers[k]).length;
+    subscribers[k][label] = callback;
+    callback(getState(k));
+}
+
 export function unsubscribeState(k, label) {
     if (subscribers[k]) {
         delete subscribers[k][label];

@@ -33,9 +33,9 @@ import maplibregl from 'maplibre-gl'
 import map from '@/js/map'
 import {Service} from '@/js/services'
 import {isMobileDevice} from "@/js/device";
-import {getState, setState, subscribeState, unsubscribeState} from "@/js/state";
+import {getState, setState, subscribeStateAndCall, unsubscribeState} from "@/js/state";
 import {AntPathPaint, AntpathDashArraySequence} from "@/js/map_paint";
-import {featureCollection} from "@turf/turf";
+// import {featureCollection} from "@turf/turf";
 
 console.debug("state", getState());
 
@@ -223,21 +223,16 @@ function updateCatStatus(status) {
             let $followButton = $(`
                 <button class="btn btn-sm btn-outline-light ${catCSSClass}"><i class="bi bi-crosshair"></i> </button>
             `);
-            if (getState().follow === status.properties.UUID) {
-                $followButton.find("i").removeClass("bi-crosshair").addClass("bi-crosshair2");
-            }
-            subscribeState("follow", (followUUID) => {
+            // if (getState().follow === status.properties.UUID) {
+            //     $followButton.find("i").removeClass("bi-crosshair").addClass("bi-crosshair2");
+            // }
+            subscribeStateAndCall("follow", (followUUID) => {
                 if (followUUID === status.properties.UUID) {
                     $followButton.find("i").removeClass("bi-crosshair").addClass("bi-crosshair2");
                 } else {
                     $followButton.find("i").removeClass("bi-crosshair2").addClass("bi-crosshair");
                 }
             }, `follow-${status.properties.UUID}-${index}`);
-
-            let $btnGroup = $(`
-                <div class="btn-group px-2 with-pointer">
-                </div>
-            `);
 
             $flyToButton.on("click", () => {
                 map.flyTo({
@@ -264,6 +259,10 @@ function updateCatStatus(status) {
                 }
             });
 
+            let $btnGroup = $(`
+                <div class="btn-group px-2 with-pointer">
+                </div>
+            `);
             $btnGroup.append($flyToButton);
             $btnGroup.append($followButton);
             return $btnGroup;
@@ -342,7 +341,7 @@ function setupWebsocket() {
 
 // Connection opened
     socket.addEventListener("open", (event) => {
-        // socket.send("Hello Server!");
+        // socket.send("Hello Server!");});
     });
 
 // Listen for messages
@@ -350,6 +349,7 @@ function setupWebsocket() {
         const data = JSON.parse(event.data);
         // console.log("Message from server ", data);
         if (data.action === "populate") {
+            $(`#cats-loading-spinner`).hide();
             const catStatus = data.features[data.features.length - 1]; // last feature is current status
             updateCatStatus(catStatus);
             animateCatPath(catStatus, data.features);
