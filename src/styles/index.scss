@@ -56,7 +56,7 @@ footer.footer.fixed-bottom {
 }
 
 // ... But the cat tracker cards should be clickable.
-.cat-tracker-card {
+.with-pointer {
   pointer-events: all !important;
   cursor: pointer;
 }

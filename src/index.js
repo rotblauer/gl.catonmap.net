@@ -33,11 +33,81 @@ import maplibregl from 'maplibre-gl'
 import map from '@/js/map'
 import {Service} from '@/js/services'
 import {isMobileDevice} from "@/js/device";
-import {getState, setState} from "@/js/state";
+import {getState, setState, subscribeState, unsubscribeState} from "@/js/state";
 import {AntPathPaint, AntpathDashArraySequence} from "@/js/map_paint";
 import {featureCollection} from "@turf/turf";
 
 console.debug("state", getState());
+
+// TOASTS
+
+const toastElList = document.querySelectorAll('.toast');
+const toastList = [...toastElList].map(toastEl => new bootstrap.Toast(toastEl, option));
+
+function fireToast(message, options = {}) {
+    let $toast = $(`
+    <div class="toast ${options.class || ''}" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-body">
+            ${message}
+        </div>
+    </div>`);
+    $(`.toast-container`).append($toast);
+    const toastBootstrap = bootstrap.Toast.getOrCreateInstance($toast[0]);
+    toastBootstrap.show();
+    window.setTimeout(() => {
+        $toast.remove();
+    }, 10 * 1000);
+}
+
+if (isMobileDevice()) {
+    $(".toast-container").removeClass("bottom-0").addClass("top-0");
+    $(".toast-container").removeClass("end-0").addClass("start-0");
+}
+
+// LEGENDS and other UI
+
+function activityElement(activity) {
+    let activityColor = "";
+    let iconClass = "";
+    switch (activity) {
+        case "Stationary":
+            activityColor = "#f32d2d";
+            iconClass = "bi bi-person-standing";
+            // iconClass = "fa-solid fa-couch";
+            break;
+        case "Walking":
+            activityColor = "#e78719";
+            iconClass = "bi bi-person-walking";
+            break;
+        case "Running":
+            activityColor = "#028532";
+            iconClass = "fa-solid fa-person-running";
+            break;
+        case "Bike":
+            activityColor = "#1238f6";
+            iconClass = "bi bi-bicycle";
+            break;
+        case "Automotive":
+            activityColor = "#be00ff";
+            iconClass = "bi bi-car-front";
+            break;
+        case "Unknown":
+            activityColor = "#000000";
+            iconClass = "bi bi-question";
+            break;
+    }
+    return $(`
+        <span style="background-color: ${activityColor}; color: white;" class="badge rounded-pill mx-1"><i class="${iconClass}"></i></span>`);
+}
+
+const allActivities = ["Stationary", "Walking", "Running", "Bike", "Automotive", "Unknown"];
+$(`.activity-legend`).each(function () {
+    for (let activity of allActivities) {
+        $(this).append(activityElement(activity));
+    }
+});
+
+// SERVICES
 
 let servicesWhitelistURLs = [/ia\./, /rye\./, /edge/, /devop/];
 
@@ -72,9 +142,7 @@ async function fetchServices() {
             return isServiceEnabled(serviceSummary);
         });
 
-        return Promise.all(serviceSummaries.map(ss => fetch(ss.url))).then(responses =>
-            Promise.all(responses.map(res => res.json()))
-        )
+        return Promise.all(serviceSummaries.map(ss => fetch(ss.url))).then(responses => Promise.all(responses.map(res => res.json())))
     }).then((services) => {
         services.sort((a, b) => {
             const serviceA = new Service(a);
@@ -128,38 +196,89 @@ function updateCatStatus(status) {
     })
 
     // Clear the status container and re-install the sorted statuses.
+    // I know, I know... we should just UPDATE the status that changed
+    // and resort the HTML elements instead of re-rendering the whole thing. FIXME.
     $(`.catstatus-container`).empty();
     for (const status of catStatuses) {
-        // Status Cards
-        let cardBorder = "";
-        if (/^rye/.test(status.properties.Name.toLowerCase())) {
-            cardBorder = "text-bg-primary";
-        } else if (/moto/.test(status.properties.Name.toLowerCase())) {
-            cardBorder = "text-bg-danger";
-        }
-        let $card = $(`
-            <div class="row justify-content-end mb-2">
-                <div class="d-flex px-0">
-                    <div class="card ${cardBorder} px-2 cat-tracker-card border-0">
-                        <div class="card-body p-1">
-                             <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
-                            <small>${status.properties.Name} - ${status.properties.Activity} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `);
 
-        $(`.catstatus-container`).each(function () {
-            let $clone = $card.clone();
-            $clone.on("click", () => {
+        function makeCatStatusBtnGroup(index) {
+            unsubscribeState(`follow`, `follow-${status.properties.UUID}-${index}`);
+            // Status Cards
+            let catCSSClass = "";
+            if (/^rye/.test(status.properties.Name.toLowerCase())) {
+                catCSSClass = "text-bg-primary";
+            } else if (/moto/.test(status.properties.Name.toLowerCase())) {
+                catCSSClass = "text-bg-danger";
+            }
+
+            let $flyToButton = $(`
+                <button class="btn btn-outline-light ${catCSSClass}">
+                    <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
+                    <small><span id="activity-icon"></span> ${status.properties.Name} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
+                </button>
+            `);
+
+            $flyToButton.find("#activity-icon").replaceWith(activityElement(status.properties.Activity));
+
+            let $followButton = $(`
+                <button class="btn btn-sm btn-outline-light ${catCSSClass}"><i class="bi bi-crosshair"></i> </button>
+            `);
+            if (getState().follow === status.properties.UUID) {
+                $followButton.find("i").removeClass("bi-crosshair").addClass("bi-crosshair2");
+            }
+            subscribeState("follow", (followUUID) => {
+                if (followUUID === status.properties.UUID) {
+                    $followButton.find("i").removeClass("bi-crosshair").addClass("bi-crosshair2");
+                } else {
+                    $followButton.find("i").removeClass("bi-crosshair2").addClass("bi-crosshair");
+                }
+            }, `follow-${status.properties.UUID}-${index}`);
+
+            let $btnGroup = $(`
+                <div class="btn-group px-2 with-pointer">
+                </div>
+            `);
+
+            $flyToButton.on("click", () => {
                 map.flyTo({
-                    center: status.geometry.coordinates,
-                    // zoom: 13,
+                    center: status.geometry.coordinates, // zoom: 13,
                     speed: 1.5,
                 })
             });
-            $(this).append($clone);
+            $followButton.on("click", () => {
+                const previousFollowState = getState().follow;
+                if (previousFollowState === status.properties.UUID) {
+                    setState("follow", null);
+                    fireToast(`Unfollowed ${status.properties.Name}`, {
+                        class : "text-bg-info",
+                    });
+                } else {
+                    setState("follow", status.properties.UUID);
+                    map.flyTo({
+                        center: status.geometry.coordinates, // zoom: 13,
+                        speed: 1.5,
+                    })
+                    fireToast(`Following ${status.properties.Name}`, {
+                        class: "text-bg-success",
+                    });
+                }
+            });
+
+            $btnGroup.append($flyToButton);
+            $btnGroup.append($followButton);
+            return $btnGroup;
+        }
+
+        $(`.catstatus-container`).each(function (index) {
+            let $row = $(`
+                <div class="row justify-content-end mb-2">
+                    <div class="d-flex px-0">
+                    </div>
+                </div>
+            `);
+            let $btnGroup = makeCatStatusBtnGroup(index);
+            $row.find(".d-flex").append($btnGroup);
+            $(this).append($row);
         })
     }
 }
@@ -200,8 +319,17 @@ async function animateCatPath(status, features) {
         if (getCatStatus(status.properties.UUID).properties.UnixTime !== thisAnimationStatus) {
             return;
         }
-        // ... and animate the cat marker along the path.
+
+        // Animate the cat marker along the path.
         catMarker.setLngLat(features[i].geometry.coordinates);
+
+        // If the cat is being followed, pan the map to the cat.
+        if (getState('follow') === status.properties.UUID) {
+            map.panTo(features[i].geometry.coordinates);
+        }
+
+        // Figure out the time delta between this feature and the next
+        // and wait for that long until the next feature is animated.
         const nextFeature = features[i + 1];
         const timeDeltaNext = nextFeature ? nextFeature.properties.UnixTime - features[i].properties.UnixTime : 0;
         await new Promise(r => setTimeout(r, timeDeltaNext * 1000));
@@ -245,13 +373,15 @@ map.once("load", async () => {
 // So the on-select watcher will toggle this value to false, and the styledata event will toggle it back to true.
 let antpathStopAnimation = false;
 
+// catLinestringCache will hold the last linestrings for each cat.
+// If any cat's linestrings are the same as the last time they were fetched,
+// they will not be re-assigned to the map data source or redrawn, preventing jitters on (no)update.
+let catLinestringCache = {};
 async function fetchLineStringsForCat(cat) {
     const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 18; // T-18hours
     const timeEnd = Math.floor(Date.now() / 1000);
     const params = new URLSearchParams({
-        uuids: cat.properties.UUID,
-        tstart: timeStart,
-        tend: timeEnd,
+        uuids: cat.properties.UUID, tstart: timeStart, tend: timeEnd,
     });
     const target = new URL(`https://cattracks.cc/linestring?${params.toString()}`).toString();
 
@@ -262,8 +392,7 @@ async function fetchLineStringsForCat(cat) {
 
         // Filter them to be at least 0.4 km and 2 minutes.
         featureCollection.features = featureCollection.features.filter(feature => {
-            return feature.properties.MeasuredSimplifiedTraversedKilometers >= 0.4 &&
-                feature.properties.Duration > 60 * 2;
+            return feature.properties.MeasuredSimplifiedTraversedKilometers >= 0.4 && feature.properties.Duration > 60 * 2;
         });
 
         // Sort them to be in order of time; latest first.
@@ -275,6 +404,11 @@ async function fetchLineStringsForCat(cat) {
         return featureCollection;
     }).then((featureCollection) => {
         if (featureCollection.features.length === 0) return featureCollection;
+        if (catLinestringCache[cat.properties.UUID] &&
+            JSON.stringify(catLinestringCache[cat.properties.UUID] === JSON.stringify(featureCollection))) {
+            return {features: []};
+        }
+        catLinestringCache[cat.properties.UUID] = featureCollection;
         // // Only antpath the first (latest) <limit>.
         // const limit = 2;
         // if (featureCollection.features.length > limit) {
@@ -285,8 +419,7 @@ async function fetchLineStringsForCat(cat) {
             map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
         } else {
             map.addSource(`linestrings-${cat.properties.UUID}`, {
-                type: 'geojson',
-                data: featureCollection,
+                type: 'geojson', data: featureCollection,
             });
 
             // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/
@@ -295,8 +428,7 @@ async function fetchLineStringsForCat(cat) {
                 'type': 'line',
                 'source': `linestrings-${cat.properties.UUID}`,
                 'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
+                    'line-join': 'round', 'line-cap': 'round'
                 },
                 'paint': AntPathPaint.background,
             });
@@ -305,15 +437,14 @@ async function fetchLineStringsForCat(cat) {
                 'type': 'line',
                 'source': `linestrings-${cat.properties.UUID}`,
                 'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
+                    'line-join': 'round', 'line-cap': 'round'
                 },
                 'paint': AntPathPaint.dashed,
             });
         }
         return featureCollection;
     }).then(featureCollection => {
-        if (featureCollection.length === 0) return;
+        if (featureCollection.features.length === 0) return;
         let step = 0;
 
         function animateDashArray(timestamp) {
@@ -330,16 +461,10 @@ async function fetchLineStringsForCat(cat) {
 
             // Update line-dasharray using the next value in AntpathDashArraySequence. The
             // divisor in the expression `timestamp / 50` controls the animation speed.
-            const newStep = parseInt(
-                (timestamp / 50) % AntpathDashArraySequence.length
-            );
+            const newStep = parseInt((timestamp / 50) % AntpathDashArraySequence.length);
 
             if (newStep !== step) {
-                map.setPaintProperty(
-                    layerID,
-                    'line-dasharray',
-                    AntpathDashArraySequence[step]
-                );
+                map.setPaintProperty(layerID, 'line-dasharray', AntpathDashArraySequence[step]);
                 step = newStep;
             }
 
@@ -554,8 +679,7 @@ async function fetchSnaps() {
             // Add a link to the image source in the popup.
             $popupContent.find("img").wrap($("<a>").attr("href", s3URL).attr("target", "_blank"));
             const popup = new maplibregl.Popup({
-                closeOnClick: true,
-                closeButton: false,
+                closeOnClick: true, closeButton: false,
             })
                 .setLngLat(snap.geometry.coordinates)
                 .setHTML($popupContent[0].outerHTML);
@@ -572,9 +696,7 @@ async function fetchSnaps() {
                     openedCanvas.hide();
                 }
                 map.flyTo({
-                    center: [snap.geometry.coordinates[0], snap.geometry.coordinates[1]],
-                    zoom: 15,
-                    speed: 1.5,
+                    center: [snap.geometry.coordinates[0], snap.geometry.coordinates[1]], zoom: 15, speed: 1.5,
                 })
             });
 

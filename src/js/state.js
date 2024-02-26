@@ -26,12 +26,17 @@ const defaults = {
     "layer-devop-catcolor": true,
     "layer-rye.level-23-density": true,
     "layer-ia.level-23-density": true,
+
+    // follow: <UUID> // This is a UUID of a cat. If set, the map will panTo this cat on each update.
 };
 
 window.localStorage.removeItem("data");
-export function getState() {
+export function getState(k) {
     // Simple caching.
     if (!stateChangedSinceGet) {
+        if (k) {
+            return state[k];
+        }
         return state;
     }
     stateChangedSinceGet = false;
@@ -51,6 +56,12 @@ export function getState() {
 
     var fragmentParams = new URLSearchParams(new URL(window.location.href).hash.replace('#', ''));
 
+    // If state is empty we're initing the page.
+    // I want to coerce the zoom to an integer because
+    // I think the dots look better that way.
+    let initing = false;
+    if (state === {}) initing = true;
+
     // Merge the URL hash and local storage into the state.
     // The URL hash takes precedence, and is assigned last.
     Object.assign(state, localStore);
@@ -58,11 +69,16 @@ export function getState() {
         state[k] = v;
     }
 
+    if (initing && state.zoom) state.zoom = Math.floor(state.zoom);
+
     // If there was no state in the URL hash or local storage, set and use the defaults.
     if (Object.keys(state).length === 0 || state["window"] /* state[window] is a migration from the old to new */) {
         state = defaults;
     }
 
+    if (k) {
+        return state[k];
+    }
     return state;
 }
 
@@ -96,5 +112,27 @@ export function setState(k, v) {
     window.history.replaceState(windowHistoryState, "---", href);
     window.localStorage.setItem(LOCALSTORAGE_STATE_KEY, JSON.stringify(state));
 
+    // Run callbacks for all subscribers of k change.
+    if (subscribers[k]) {
+        for (let [label, callback] of Object.entries(subscribers[k])) {
+            callback(v);
+        }
+    }
+
     return state;
+}
+
+let subscribers = {};
+export function subscribeState(k, callback, optionalLabel) {
+    if (!subscribers[k]) {
+        subscribers[k] = {};
+    }
+    const label = optionalLabel || Object.keys(subscribers[k]).length;
+    subscribers[k][label] = callback;
+}
+
+export function unsubscribeState(k, label) {
+    if (subscribers[k]) {
+        delete subscribers[k][label];
+    }
 }
