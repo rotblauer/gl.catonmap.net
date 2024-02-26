@@ -172,6 +172,8 @@ function getCatStatus(uuid) {
     });
 }
 
+let timeAgoIntervals = [];
+
 function updateCatStatus(status) {
     // LineStrings (async)
     fetchLineStringsForCat(status).then((lines) => {
@@ -199,6 +201,13 @@ function updateCatStatus(status) {
     // I know, I know... we should just UPDATE the status that changed
     // and resort the HTML elements instead of re-rendering the whole thing. FIXME.
     $(`.catstatus-container`).empty();
+
+
+    // Clear all intervals from previous update.
+    for (let i = 0; i < timeAgoIntervals.length; i++) {
+        window.clearInterval(timeAgoIntervals[i]);
+    }
+    // Iterate over the statuses and re-render newly factoried buttons.
     for (const status of catStatuses) {
 
         function makeCatStatusBtnGroup(index) {
@@ -214,11 +223,20 @@ function updateCatStatus(status) {
             let $flyToButton = $(`
                 <button class="btn btn-outline-light ${catCSSClass}">
                     <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
-                    <small><span id="activity-icon"></span> ${status.properties.Name} - <span class="text-white">${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}</span></small>
+                    <small><span id="activity-icon"></span> ${status.properties.Name} - 
+                    <span id="catstatus-timeago-${status.properties.UUID}-${index}" class="text-white">
+                        ${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}
+                    </span>
+                    </small>
                 </button>
             `);
-
             $flyToButton.find("#activity-icon").replaceWith(activityElement(status.properties.Activity));
+
+            function updateThisButtonTimeAgo() {
+                console.debug("updateThisButtonTimeAgo", status.properties.Name, status.properties.UUID, index);
+                $(`#catstatus-timeago-${status.properties.UUID}-${index}`).text(`${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}`);
+            }
+            timeAgoIntervals.push(window.setInterval(updateThisButtonTimeAgo, 1 * 1000));
 
             let $followButton = $(`
                 <button class="btn btn-sm btn-outline-light ${catCSSClass}"><i class="bi bi-crosshair"></i> </button>
@@ -245,7 +263,7 @@ function updateCatStatus(status) {
                 if (previousFollowState === status.properties.UUID) {
                     setState("follow", null);
                     fireToast(`Unfollowed ${status.properties.Name}`, {
-                        class : "text-bg-info",
+                        class: "text-bg-info",
                     });
                 } else {
                     setState("follow", status.properties.UUID);
@@ -377,6 +395,7 @@ let antpathStopAnimation = false;
 // If any cat's linestrings are the same as the last time they were fetched,
 // they will not be re-assigned to the map data source or redrawn, preventing jitters on (no)update.
 let catLinestringCache = {};
+
 async function fetchLineStringsForCat(cat) {
     const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 18; // T-18hours
     const timeEnd = Math.floor(Date.now() / 1000);
