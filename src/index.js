@@ -35,6 +35,7 @@ import {Service} from '@/js/services'
 import {isMobileDevice} from "@/js/device";
 import {getState, setState, subscribeStateAndCall, unsubscribeState} from "@/js/state";
 import {AntPathPaint, AntpathDashArraySequence} from "@/js/map_paint";
+import {featureCollection} from "@turf/turf";
 // import {featureCollection} from "@turf/turf";
 
 console.debug("state", getState());
@@ -233,9 +234,10 @@ function updateCatStatus(status) {
             $flyToButton.find("#activity-icon").replaceWith(activityElement(status.properties.Activity));
 
             function updateThisButtonTimeAgo() {
-                console.debug("updateThisButtonTimeAgo", status.properties.Name, status.properties.UUID, index);
+                // console.debug("updateThisButtonTimeAgo", status.properties.Name, status.properties.UUID, index);
                 $(`#catstatus-timeago-${status.properties.UUID}-${index}`).text(`${timeAgo.format(new Date(status.properties.UnixTime * 1000), 'mini')}`);
             }
+
             timeAgoIntervals.push(window.setInterval(updateThisButtonTimeAgo, 1 * 1000));
 
             let $followButton = $(`
@@ -301,6 +303,8 @@ function updateCatStatus(status) {
 }
 
 
+let catLastPushLinestrings = {};
+
 async function animateCatPath(status, features) {
 
     const thisAnimationStatus = status.properties.UnixTime;
@@ -329,6 +333,52 @@ async function animateCatPath(status, features) {
         catMarkers.push(catMarker);
         catMarker.addTo(map);
     }
+
+    // activityLineStringsFeatureCollection is a GeoJSON FeatureCollection of
+    // linestrings.
+    // These linestrings will be aggregated PER ACTIVITY.
+    // Every rendered feature in the "playback" will update
+    // the latest linestring by either 'closing' it and beginning a
+    // new one, or appending to the latest one and updating its properties.
+    // Once the latest linestring has been updated, we update it
+    // with respect to its existence in the FeatureCollection and
+    // update the map data source with the new FeatureCollection.
+    // This intended to be a line which follows the cat as it moves
+    // and draws multi-colored line segments behind it depend on
+    // which activity they were.
+    let activityLineStringsFeatureCollection = {
+        "type": "FeatureCollection",
+        "features": [],
+    }
+    // linestring is a GeoJSON Linestring object.
+    let latestLineStringByActivity = {
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [features[0].geometry.coordinates]
+        },
+        "properties": {}
+    }
+
+    if (!map.getSource(`lastpush-linestrings-${status.properties.UUID}`)) {
+
+        map.addSource(`lastpush-linestrings-${status.properties.UUID}`,
+            {
+                type: "geojson",
+                data: activityLineStringsFeatureCollection
+            });
+
+        map.addLayer({
+            'id': `layer-lastpush-linestrings-${status.properties.UUID}`,
+            'type': 'line',
+            'source': `lastpush-linestrings-${status.properties.UUID}`,
+            'layout': {
+                'line-join': 'round', 'line-cap': 'round'
+            },
+            'paint': AntPathPaint.background,
+        });
+    }
+
     // Range over all features...
     for (let i = 0; i < features.length; i++) {
         // This is an async function, so it can be called in parallel.
@@ -339,6 +389,31 @@ async function animateCatPath(status, features) {
 
         // Animate the cat marker along the path.
         catMarker.setLngLat(features[i].geometry.coordinates);
+
+        if (i >= 1) {
+            if (latestLineStringByActivity.geometry.coordinates.length >= 1 && latestLineStringByActivity.properties["Activity"] !== features[i].properties.Activity) {
+                //
+
+                // Reset the current linestring, installing the new (empty) one to the collection.
+                latestLineStringByActivity = new Object({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [features[i-1].geometry.coordinates]
+                    },
+                    "properties": {}
+                });
+                activityLineStringsFeatureCollection.features.push(latestLineStringByActivity);
+            }
+
+            latestLineStringByActivity.geometry.coordinates.push(features[i].geometry.coordinates);
+            latestLineStringByActivity.properties = features[i].properties;
+            activityLineStringsFeatureCollection.features[activityLineStringsFeatureCollection.features.length - 1] = latestLineStringByActivity;
+
+            map.getSource(`lastpush-linestrings-${status.properties.UUID}`).setData(activityLineStringsFeatureCollection);
+            // console.debug("activityLineStrings", activityLineStringsFeatureCollection);
+        }
+
 
         // If the cat is being followed, pan the map to the cat.
         if (getState('follow') === status.properties.UUID) {

@@ -78,7 +78,7 @@ export const AntPathPaint = {
             ],
             'line-width': 2,
             'line-dasharray': [0, 4, 3]
-    }
+    },
 }
 
 export function Activity() {
