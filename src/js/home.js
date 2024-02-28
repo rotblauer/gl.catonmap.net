@@ -34,7 +34,7 @@ import {initMap} from '@/js/map'
 import {Service} from '@/js/services'
 import {isMobileDevice} from "@/js/device";
 import {getState, setState, subscribeStateAndCall, unsubscribeState} from "@/js/state";
-import {AntPathPaint, AntpathDashArraySequence} from "@/js/map_paint";
+import {AntPathPaint, AntpathDashArraySequence, ColorMap} from "@/js/map_paint";
 import {featureCollection} from "@turf/turf";
 // import {featureCollection} from "@turf/turf";
 
@@ -348,10 +348,12 @@ export function main() {
             let $marker = $(`<div>`);
             $marker.attr("data-cat-uuid", status.properties.UUID);
             $marker.addClass("cat-marker");
-            $marker.css("background-image", `url(/assets/cat-icon-white.png)`);
-            $marker.css("background-size", "contain");
-            $marker.css("width", `24px`); // 20% smaller than the cat marker
-            $marker.css("height", `24px`);
+            // $marker.css("background-image", `url(/assets/cat-icon-white.png)`);
+            // $marker.css("background-size", "contain");
+            $marker.css("background-color", `#000000`); // black
+            $marker.css("border-radius", `50%`);
+            $marker.css("width", `8px`);
+            $marker.css("height", `8px`);
 
             ghostCatMarker = new maplibregl.Marker({element: $marker[0]})
                 .setLngLat(features[0].geometry.coordinates);
@@ -457,11 +459,15 @@ export function main() {
                 latestLineStringByActivity.properties = features[i].properties;
                 activityLineStringsFeatureCollection.features[activityLineStringsFeatureCollection.features.length - 1] = latestLineStringByActivity;
 
-                map.getSource(`lastpush-linestrings-${status.properties.UUID}`).setData(activityLineStringsFeatureCollection);
+                // Seing occasional errors in the console about this being undefined.
+                if (map.getSource(`lastpush-linestrings-${status.properties.UUID}`)) {
+                    map.getSource(`lastpush-linestrings-${status.properties.UUID}`).setData(activityLineStringsFeatureCollection);
+                }
                 // console.debug("activityLineStrings", activityLineStringsFeatureCollection);
             }
 
-            ghostCatMarker.getElement().style.backgroundImage = `url(/assets/cat-icon-${features[i].properties.Activity || 'Unknown'}.png)`;
+            // ghostCatMarker.getElement().style.backgroundImage = `url(/assets/cat-icon-${features[i].properties.Activity || 'Unknown'}.png)`;
+            ghostCatMarker.getElement().style.backgroundColor = ColorMap.activity[features[i].properties.Activity || 'Unknown'];
             ghostCatMarker.setLngLat(features[i].geometry.coordinates);
 
             // Uncomment me to animate the linestring draws.
