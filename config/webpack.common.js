@@ -42,6 +42,12 @@ module.exports = {
       template: paths.src + '/template.html', // template file
       filename: 'index.html', // output file
     }),
+    // https://github.com/taniarascia/webpack-boilerplate/issues/33
+    new HtmlWebpackPlugin({
+      title: 'Cat Snaps',
+      template: paths.src + '/snaps.html', // template file
+      filename: 'snaps.html', // output file
+    }),
   ],
 
   // Determine how modules within the project are treated

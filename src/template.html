@@ -12,7 +12,7 @@
 <body>
 <nav class="navbar fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand">
+        <a class="navbar-brand" href="/">
             <img src="/assets/cat-icon.png" alt="" width="24" height="24"
                  style="border-radius: 15px; vertical-align: top; margin-top: 3px;">
             Cat Tracks
@@ -117,13 +117,14 @@
             </div>
         </div>
 
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarSnaps"
-             aria-labelledby="offcanvasNavbarSnapsLabel">
+<!--        <div class="offcanvas offcanvas-end show" tabindex="-1" id="offcanvasNavbarSnaps" aria-labelledby="offcanvasNavbarSnapsLabel">-->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbarSnaps" aria-labelledby="offcanvasNavbarSnapsLabel">
             <div class="offcanvas-header">
                 <h5 class="offcanvas-title" id="offcanvasNavbarSnapsLabel"><i class="bi-camera-fill"></i> Cat Snaps</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+
             </div>
-            <div class="offcanvas-body">
+            <div class="offcanvas-body pt-1">
                 <ul id="catsnaps-list" class="navbar-nav justify-content-end flex-grow-1"></ul>
             </div>
         </div>
