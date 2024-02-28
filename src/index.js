@@ -166,6 +166,7 @@ async function fetchServices() {
 
 let catStatuses = [];
 let catMarkers = [];
+let ghostCatMarkers = []; // for 'real-time' replay of last cat tracks
 
 function getCatStatus(uuid) {
     return catStatuses.find((status) => {
@@ -216,13 +217,13 @@ function updateCatStatus(status) {
             // Status Cards
             let catCSSClass = "";
             if (/^rye/.test(status.properties.Name.toLowerCase())) {
-                catCSSClass = "text-bg-primary";
+                catCSSClass = "primary";
             } else if (/moto/.test(status.properties.Name.toLowerCase())) {
-                catCSSClass = "text-bg-danger";
+                catCSSClass = "danger";
             }
 
             let $flyToButton = $(`
-                <button class="btn btn-outline-light ${catCSSClass}">
+                <button class="btn btn-sm btn-outline-light border-0 text-bg-${catCSSClass}">
                     <img src="/assets/cat-icon.png" alt="" height="16px" width="16px" style="display: inline; margin-bottom: 4px;">
                     <small><span id="activity-icon"></span> ${status.properties.Name} - 
                     <span id="catstatus-timeago-${status.properties.UUID}-${index}" class="text-white">
@@ -241,16 +242,28 @@ function updateCatStatus(status) {
             timeAgoIntervals.push(window.setInterval(updateThisButtonTimeAgo, 1 * 1000));
 
             let $followButton = $(`
-                <button class="btn btn-sm btn-outline-light ${catCSSClass}"><i class="bi bi-crosshair"></i> </button>
+                <button class="btn btn-sm btn-outline-light border-0 bg-semitransparent text-${catCSSClass}"><i class="bi bi-crosshair"></i> </button>
             `);
             // if (getState().follow === status.properties.UUID) {
             //     $followButton.find("i").removeClass("bi-crosshair").addClass("bi-crosshair2");
             // }
             subscribeStateAndCall("follow", (followUUID) => {
                 if (followUUID === status.properties.UUID) {
-                    $followButton.find("i").removeClass("bi-crosshair").addClass("bi-crosshair2");
+                    $followButton.find("i")
+                        .removeClass("bi-crosshair")
+                        .addClass("bi-crosshair2");
+                    $followButton
+                        .removeClass("bg-semitransparent")
+                        .removeClass(`text-${catCSSClass}`)
+                        .addClass(`text-bg-${catCSSClass}`);
                 } else {
-                    $followButton.find("i").removeClass("bi-crosshair2").addClass("bi-crosshair");
+                    $followButton.find("i")
+                        .removeClass("bi-crosshair2")
+                        .addClass("bi-crosshair");
+                    $followButton
+                        .addClass("bg-semitransparent")
+                        .addClass(`text-${catCSSClass}`)
+                        .removeClass(`text-bg-${catCSSClass}`);
                 }
             }, `follow-${status.properties.UUID}-${index}`);
 
@@ -264,7 +277,7 @@ function updateCatStatus(status) {
                 const previousFollowState = getState().follow;
                 if (previousFollowState === status.properties.UUID) {
                     setState("follow", null);
-                    fireToast(`Unfollowed ${status.properties.Name}`, {
+                    fireToast(`Let ${status.properties.Name} loose`, {
                         class: "text-bg-info",
                     });
                 } else {
@@ -280,7 +293,7 @@ function updateCatStatus(status) {
             });
 
             let $btnGroup = $(`
-                <div class="btn-group px-2 with-pointer">
+                <div class="btn-group btn-group-sm px-2 with-pointer">
                 </div>
             `);
             $btnGroup.append($flyToButton);
@@ -311,12 +324,38 @@ async function animateCatPath(status, features) {
 
     // Get or init the cat marker.
     let catMarker;
+    let ghostCatMarker;
     // Find the cat marker.
     for (let marker of catMarkers) {
         if (marker.getElement().getAttribute('data-cat-uuid') === features[0].properties.UUID) {
             catMarker = marker;
         }
     }
+    for (let marker of ghostCatMarkers) {
+        if (marker.getElement().getAttribute('data-cat-uuid') === features[0].properties.UUID) {
+            ghostCatMarker = marker;
+        }
+    }
+
+    // Do ghostCatMarker first so its below the catMarker.
+    // The ghost marker will mark the head of the activity tail
+    // being animated behind the cat.
+    if (typeof ghostCatMarker === "undefined") {
+        // Create a new cat marker.
+        let $marker = $(`<div>`);
+        $marker.attr("data-cat-uuid", status.properties.UUID);
+        $marker.addClass("cat-marker");
+        $marker.css("background-image", `url(/assets/cat-icon-white.png)`);
+        $marker.css("background-size", "contain");
+        $marker.css("width", `24px`);
+        $marker.css("height", `24px`);
+
+        ghostCatMarker = new maplibregl.Marker({element: $marker[0]})
+            .setLngLat(features[0].geometry.coordinates);
+        ghostCatMarkers.push(ghostCatMarker);
+        ghostCatMarker.addTo(map);
+    }
+
     if (typeof catMarker === "undefined") {
         // Create a new cat marker.
         let $marker = $(`<div>`);
@@ -329,9 +368,17 @@ async function animateCatPath(status, features) {
 
         // add marker to map
         catMarker = new maplibregl.Marker({element: $marker[0]})
-            .setLngLat(features[0].geometry.coordinates);
+            .setLngLat(status.geometry.coordinates);
         catMarkers.push(catMarker);
         catMarker.addTo(map);
+    }
+
+    // The catMarker always gets the 'status' position; the last-known value.
+    catMarker.setLngLat(status.geometry.coordinates);
+
+    // If the cat is being followed, pan the map to the cat.
+    if (getState('follow') === status.properties.UUID) {
+        map.panTo(status.geometry.coordinates);
     }
 
     // activityLineStringsFeatureCollection is a GeoJSON FeatureCollection of
@@ -387,9 +434,6 @@ async function animateCatPath(status, features) {
             return;
         }
 
-        // Animate the cat marker along the path.
-        catMarker.setLngLat(features[i].geometry.coordinates);
-
         if (i >= 1) {
             if (latestLineStringByActivity.geometry.coordinates.length >= 1 && latestLineStringByActivity.properties["Activity"] !== features[i].properties.Activity) {
                 //
@@ -414,17 +458,17 @@ async function animateCatPath(status, features) {
             // console.debug("activityLineStrings", activityLineStringsFeatureCollection);
         }
 
+        ghostCatMarker.getElement().style.backgroundImage = `url(/assets/cat-icon-${features[i].properties.Activity || 'Unknown'}.png)`;
+        ghostCatMarker.setLngLat(features[i].geometry.coordinates);
 
-        // If the cat is being followed, pan the map to the cat.
-        if (getState('follow') === status.properties.UUID) {
-            map.panTo(features[i].geometry.coordinates);
-        }
-
+        // Uncomment me to animate the linestring draws.
         // Figure out the time delta between this feature and the next
         // and wait for that long until the next feature is animated.
         const nextFeature = features[i + 1];
-        const timeDeltaNext = nextFeature ? nextFeature.properties.UnixTime - features[i].properties.UnixTime : 0;
-        await new Promise(r => setTimeout(r, timeDeltaNext * 1000));
+        let timeDeltaNext = nextFeature ? nextFeature.properties.UnixTime - features[i].properties.UnixTime : 0;
+        timeDeltaNext = timeDeltaNext * 1000; // convert to milliseconds
+        // timeDeltaNext /= 2; // speed up the animation
+        await new Promise(r => setTimeout(r, timeDeltaNext));
     }
 }
 
@@ -473,9 +517,11 @@ let catLinestringCache = {};
 
 async function fetchLineStringsForCat(cat) {
     const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 18; // T-18hours
-    const timeEnd = Math.floor(Date.now() / 1000);
+    // const timeEnd = Math.floor(Date.now() / 1000);
     const params = new URLSearchParams({
-        uuids: cat.properties.UUID, tstart: timeStart, tend: timeEnd,
+        uuids: cat.properties.UUID,
+        tstart: timeStart,
+        // tend: timeEnd,
     });
     const target = new URL(`https://cattracks.cc/linestring?${params.toString()}`).toString();
 
@@ -745,7 +791,7 @@ function addCatTrackerToggleControl() {
     // d-none d-xs-block d-sm-block d-md-block
     let $ctrl = $(`
         <div id="cattracker-toggle" class="maplibregl-ctrl maplibregl-ctrl-group">
-            <button type="button" class="maplibregl-ctrl-icon btn" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Show Cat Tracker">
+            <button type="button" class="maplibregl-ctrl-icon btn" data-bs-toggle="modal" data-bs-target="#catstatus-modal-onlymobile" title="Show Cat Tracker">
                 🐈
             </button>
         </div>
@@ -754,8 +800,15 @@ function addCatTrackerToggleControl() {
 }
 
 map.once("load", () => {
+    // maplibregl-ctrl-attrib maplibregl-compact maplibregl-compact-show
+    $(`.maplibregl-ctrl-attrib`).removeClass('maplibregl-compact-show');
     addCatsnapMarkerToggleControl();
-    if (isMobileDevice()) addCatTrackerToggleControl();
+    if (isMobileDevice()) {
+        addCatTrackerToggleControl();
+        $(`#catstatus-container-nomobile`).remove();
+    } else {
+        $(`#catstatus-modal-onlymobile`).remove();
+    }
 });
 
 // Update the select option to whatever style is stateful.
@@ -805,7 +858,6 @@ $(`.mapstyles-select`).on("change", (e) => {
         antpathStopAnimation = false;
         // ... and refetch the cats (and their linestrings) to resume
         // with fresh cats and fresh linestrings antpaths.
-        fetchLastCats();
     });
 });
 

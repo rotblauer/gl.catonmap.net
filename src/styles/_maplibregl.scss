@@ -25,5 +25,10 @@ input.mapboxgl-ctrl-geocoder--input.maplibregl-ctrl-geocoder--input {
 
 // Turn off the attribution.
 .maplibregl-ctrl-bottom-right > details {
-  display: none;
+  //display: none;
+  font-size: 8px;
+  > summary {
+    //height: 12px;
+    //width: 12px;
+  }
 }
