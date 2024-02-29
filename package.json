@@ -55,6 +55,7 @@
     "@watergis/maplibre-gl-export": "^3.1.0",
     "bootstrap": "^5.3.2",
     "bootstrap-icons": "^1.11.3",
+    "bs5-lightbox": "^1.8.3",
     "color": "^4.2.3",
     "javascript-time-ago": "^2.5.9",
     "jquery": "^3.7.1",

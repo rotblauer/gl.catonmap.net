@@ -12,17 +12,6 @@
 
 @import '_maplibregl.scss'; // Overrides for maplibre-gl
 
-// I like big maps. I cannot lie.
-body {
-  margin: 0;
-  padding: 0;
-}
-
-html, body, #map {
-  height: 100%;
-  width: 100%;
-}
-
 // Don't visually interrupt or truncate the map.
 .navbar.fixed-top {
   background-color: #FFFFFF55;
@@ -67,7 +56,7 @@ footer.footer.fixed-bottom {
 
 // The only modal in use is for showing the cat tracker details on mobile.
 // If that changes, you'll need to adjust this to be more specific.
-.modal-dialog {
+#catstatus-modal-onlymobile .modal-dialog {
   position: fixed;
   top: 45px;
   right: auto;
@@ -76,7 +65,7 @@ footer.footer.fixed-bottom {
   //width: 100%;
 }
 
-.modal-content {
+#catstatus-modal-onlymobile .modal-content {
   background: none !important;
   border: none !important;
 }
@@ -109,3 +98,4 @@ footer.footer.fixed-bottom {
 .bg-semitransparent {
   background-color: #FFFFFF77;
 }
+

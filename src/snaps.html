@@ -40,34 +40,26 @@
     <div id="cats-loading-spinner" class="spinner-border m-4" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
-    <div id="catsnaps-list" class="row" data-masonry='{"percentPosition": true }'></div>
+    <div id="catsnaps-list" class="row" data-masonry='{"percentPosition": true }'>
+<!--        catsnaps go here-->
+    </div>
     <div id='end-of-results' class='d-none alert alert-info'>
         <em>End of results</em>
     </div>
 </div>
 
-<div id="snap-card-template" class="card mb-2 d-none">
-    <a href="" class="">
-    <img class="card-img-top with-pointer" src="https://placekitten.com/200/300"></img>
-    </a>
-    <div class="card-body">
-        <div class="row justify-content-between">
-            <div class="col">
-                <p class="card-text text-start">
-                    <span id="snap-author" >${snap.properties.Name}</span>
-                </p>
-            </div>
-            <div class="col">
-                <p class="card-text text-end">
-                    <small id="snap-tim" class="text-end">
-                        <span id="snap-time-timeago" class="text-muted">${timeAgo.format(snapTime, 'mini')}</span> -
-                        <span id="snap-time-absolute">${localTimeStr}</span>
-                    </small>
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+<a id="snap-template" href="https://placekitten.com/200/300"
+   data-toggle="lightbox"
+   data-type="image"
+   data-gallery="snaps-gallery"
+   class="snap-element d-none">
+    <figure class="figure">
+    <img src="https://placekitten.com/200/300" class="img-fluid">
+    <figcaption class="figure-caption">
+    </figcaption>
+    </figure>
+</a>
+
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 </body>

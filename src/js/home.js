@@ -5,6 +5,7 @@
 
 // Test import of styles
 import '@/styles/index.scss'
+import '@/styles/map.scss'
 
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
@@ -123,6 +124,9 @@ export function main() {
 
     let globalServices = [];
 
+    /*
+    https://mb.tiles.catonmap.info/services/ia.level-23
+ */
     async function fetchServices() {
         return fetch("https://mb.tiles.catonmap.info/services").then((res) => {
             // console.log("res", res);
