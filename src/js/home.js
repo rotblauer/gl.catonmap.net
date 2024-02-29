@@ -13,13 +13,7 @@ import $ from 'jquery'
 // Import bootstrap icons
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-import TimeAgo from "javascript-time-ago";
-// English.
-import en from 'javascript-time-ago/locale/en'
-
-TimeAgo.addDefaultLocale(en)
-// Create formatter (English).
-const timeAgo = new TimeAgo('en-US')
+import {timeAgo} from "@/js/timeago";
 
 /*
 You can also import JavaScript plugins individually as needed to keep bundle sizes down:
@@ -180,6 +174,57 @@ export function main() {
     let timeAgoIntervals = [];
 
     function updateCatStatus(status) {
+
+        if (!map.getSource(`lastpush-linestrings-${status.properties.UUID}`)) {
+            map.addSource(`lastpush-linestrings-${status.properties.UUID}`,
+                {
+                    type: "geojson", data: JSON.parse(`{ "type": "FeatureCollection", "features": [] }`),
+                });
+        }
+
+        if (!map.getLayer(`layer-lastpush-linestrings-${status.properties.UUID}`)) {
+            map.addLayer({
+                'id': `layer-lastpush-linestrings-${status.properties.UUID}`,
+                'type': 'line',
+                'source': `lastpush-linestrings-${status.properties.UUID}`,
+                'layout': {
+                    'line-join': 'round', 'line-cap': 'round'
+                },
+                'paint': AntPathPaint.background,
+            });
+        }
+
+        if (!map.getSource(`linestrings-${status.properties.UUID}`)) {
+            map.addSource(`linestrings-${status.properties.UUID}`, {
+                type: 'geojson', data: JSON.parse(`{ "type": "FeatureCollection", "features": [] }`),
+            });
+
+        }
+        if (!map.getLayer(`linestrings-dashed-${status.properties.UUID}`)) {
+            // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/
+            map.addLayer({
+                'id': `linestrings-dashed-${status.properties.UUID}`,
+                'type': 'line',
+                'source': `linestrings-${status.properties.UUID}`,
+                'layout': {
+                    'line-join': 'round', 'line-cap': 'round'
+                },
+                'paint': AntPathPaint.dashed,
+            }, `layer-lastpush-linestrings-${status.properties.UUID}`);
+        }
+
+        if (!map.getLayer(`linestrings-background-${status.properties.UUID}`)) {
+            map.addLayer({
+                'id': `linestrings-background-${status.properties.UUID}`,
+                'type': 'line',
+                'source': `linestrings-${status.properties.UUID}`,
+                'layout': {
+                    'line-join': 'round', 'line-cap': 'round'
+                },
+                'paint': AntPathPaint.background,
+            }, `linestrings-dashed-${status.properties.UUID}`);
+        }
+
         // LineStrings (async)
         fetchLineStringsForCat(status).then((lines) => {
             // console.log("lines", lines);
@@ -412,24 +457,6 @@ export function main() {
             "properties": {}
         }
 
-        if (!map.getSource(`lastpush-linestrings-${status.properties.UUID}`)) {
-
-            map.addSource(`lastpush-linestrings-${status.properties.UUID}`,
-                {
-                    type: "geojson",
-                    data: activityLineStringsFeatureCollection
-                });
-
-            map.addLayer({
-                'id': `layer-lastpush-linestrings-${status.properties.UUID}`,
-                'type': 'line',
-                'source': `lastpush-linestrings-${status.properties.UUID}`,
-                'layout': {
-                    'line-join': 'round', 'line-cap': 'round'
-                },
-                'paint': AntPathPaint.background,
-            });
-        }
 
         // Range over all features...
         for (let i = 0; i < features.length; i++) {
@@ -564,33 +591,8 @@ export function main() {
             //     featureCollection.features = featureCollection.features.slice(0, limit);
             // }
 
-            if (map.getSource(`linestrings-${cat.properties.UUID}`)) {
-                map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
-            } else {
-                map.addSource(`linestrings-${cat.properties.UUID}`, {
-                    type: 'geojson', data: featureCollection,
-                });
+            map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
 
-                // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/
-                map.addLayer({
-                    'id': `linestrings-background-${cat.properties.UUID}`,
-                    'type': 'line',
-                    'source': `linestrings-${cat.properties.UUID}`,
-                    'layout': {
-                        'line-join': 'round', 'line-cap': 'round'
-                    },
-                    'paint': AntPathPaint.background,
-                });
-                map.addLayer({
-                    'id': `linestrings-dashed-${cat.properties.UUID}`,
-                    'type': 'line',
-                    'source': `linestrings-${cat.properties.UUID}`,
-                    'layout': {
-                        'line-join': 'round', 'line-cap': 'round'
-                    },
-                    'paint': AntPathPaint.dashed,
-                });
-            }
             return featureCollection;
         }).then(featureCollection => {
             if (featureCollection.features.length === 0) return;

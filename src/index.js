@@ -12,14 +12,16 @@ import $ from 'jquery'
 
 // Import bootstrap icons
 import 'bootstrap-icons/font/bootstrap-icons.css'
+
 import { main as home } from '@/js/home.js';
+import { main as snaps } from '@/js/snaps.js';
 
 switch (window.location.pathname) {
     case "/":
         home();
         break;
     case "/snaps.html":
-        console.log("snaps page js running");
+        snaps();
         break;
     default:
         console.log("no main function for this page");

@@ -19,7 +19,18 @@
         </a>
 
         <div class="d-flex flex-row-reverse">
-            <button id="snaps-view-button" class="navbar-toggler bg-body-tertiary btn btn-sm position-relative"
+            <div class="d-flex ps-1">
+                <div class="dropdown">
+                    <button id="nav-links-dropdown" class="dropdown-toggle  btn btn-light shadow-sm position-relative" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-link-45deg"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/snaps.html"><i class="bi-camera-fill"></i> Cat Snaps Page</a></li>
+                    </ul>
+
+                </div>
+            </div>
+            <button id="snaps-view-button" class=" btn btn-light shadow-sm position-relative"
                     type="button" data-bs-toggle="offcanvas"
                     data-bs-target="#offcanvasNavbarSnaps" aria-controls="offcanvasNavbarSnaps"
                     aria-label="Toggle navigation">
@@ -31,11 +42,9 @@
                       class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle d-none">
                     <span class="visually-hidden">New alerts</span>
                   </span>
-
-
             </button>
             <div class="d-flex pe-1">
-                <button class="navbar-toggler bg-body-tertiary btn btn-sm" type="button" data-bs-toggle="offcanvas"
+                <button class="  btn btn-light shadow-sm" type="button" data-bs-toggle="offcanvas"
                         data-bs-target="#offcanvasNavbarServices" aria-controls="offcanvasNavbarServices"
                         aria-label="Toggle navigation">
                     <!--                <i class="bi-map-fill"></i>-->
@@ -154,7 +163,7 @@
 <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
 <!--d-none d-md-block-->
-<div id="catstatus-container-nomobile" class="py-3 px-1 fixed-top">
+<div id="catstatus-container-nomobile" class="position-fixed start-0 top-0 py-3 px-1">
     <div id="cats-loading-spinner" class="spinner-border m-4" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>

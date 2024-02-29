@@ -7,31 +7,74 @@
 
     <title><%= htmlWebpackPlugin.options.title %></title>
 
+    <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
 </head>
 
-<body>
+<body data-bs-spy="scroll" data-bs-target="#catsnaps-list">
 <nav class="navbar fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand">
             <img src="/assets/cat-icon.png" alt="" width="24" height="24"
                  style="border-radius: 15px; vertical-align: top; margin-top: 3px;">
-            Cat Tracks
+            Cat Snaps
         </a>
 
         <div class="d-flex flex-row-reverse">
+            <div class="d-flex ps-1">
+                <div class="dropdown">
+                    <button id="nav-links-dropdown" class="dropdown-toggle  btn btn-light shadow-sm position-relative" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-link-45deg"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/"><i class="bi bi-map-fill"></i> Cat on Map</a></li>
+                    </ul>
 
+                </div>
+            </div>
         </div>
 
     </div>
 </nav>
 
-<div class="container-fluid mt-4 pt-4">
-    <h1>Hello Snap world</h1>
-
+<div id="main-container" class="container-fluid mt-5 pt-4">
+    <div id="cats-loading-spinner" class="spinner-border m-4" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <div id="catsnaps-list" class="row" data-masonry='{"percentPosition": true }'></div>
+    <div id='end-of-results' class='d-none alert alert-info'>
+        <em>End of results</em>
+    </div>
 </div>
 
+<div id="snap-card-template" class="card mb-2 d-none">
+    <a href="" class="">
+    <img class="card-img-top with-pointer" src="https://placekitten.com/200/300"></img>
+    </a>
+    <div class="card-body">
+        <div class="row justify-content-between">
+            <div class="col">
+                <p class="card-text text-start">
+                    <span id="snap-author" >${snap.properties.Name}</span>
+                </p>
+            </div>
+            <div class="col">
+                <p class="card-text text-end">
+                    <small id="snap-tim" class="text-end">
+                        <span id="snap-time-timeago" class="text-muted">${timeAgo.format(snapTime, 'mini')}</span> -
+                        <span id="snap-time-absolute">${localTimeStr}</span>
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
-
 </body>
 </html>
+
+<!--
+
+lastpush-linestrings-${status.properties.UUID}
+layer-lastpush-linestrings-${status.properties.UUID}
+-->
