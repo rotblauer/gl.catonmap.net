@@ -527,6 +527,10 @@ export function main() {
             // console.log("Message from server ", data);
             if (data.action === "populate") {
                 $(`#cats-loading-spinner`).hide();
+                if (data.features.length === 0) {
+                    console.warn("empty status", data);
+                    return;
+                }
                 const catStatus = data.features[data.features.length - 1]; // last feature is current status
                 updateCatStatus(catStatus);
                 animateCatPath(catStatus, data.features);
