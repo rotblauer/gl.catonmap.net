@@ -599,7 +599,13 @@ export function main() {
             //     featureCollection.features = featureCollection.features.slice(0, limit);
             // }
 
-            map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
+            if (!map.getSource(`linestrings-${cat.properties.UUID}`)) {
+                map.addSource(`linestrings-${cat.properties.UUID}`, {
+                    type: 'geojson', data: featureCollection,
+                });
+            } else {
+                map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
+            }
 
             return featureCollection;
         }).then(featureCollection => {
