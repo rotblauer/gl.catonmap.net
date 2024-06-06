@@ -612,6 +612,7 @@ export function main() {
             if (featureCollection.features.length === 0) return;
             let step = 0;
 
+            let animationCompleted = 0;
             function animateDashArray(timestamp) {
                 const layerID = `linestrings-dashed-${cat.properties.UUID}`;
                 if (!map.getLayer(layerID)) return;
@@ -626,19 +627,33 @@ export function main() {
 
                 // Update line-dasharray using the next value in AntpathDashArraySequence. The
                 // divisor in the expression `timestamp / 50` controls the animation speed.
-                const newStep = parseInt((timestamp / 50) % AntpathDashArraySequence.length);
+                let speedDiv = 60;
+                if (animationCompleted !== 0) {
+                    let lastIterationTook = new Date() - animationCompleted;
+                    speedDiv = lastIterationTook;
+                }
+                if (speedDiv > 300) {
+                    speedDiv = 300;
+                } else if (speedDiv < 60) {
+                    speedDiv = 60;
+                }
+
+                const newStep = parseInt((timestamp / speedDiv) % AntpathDashArraySequence.length);
 
                 if (newStep !== step) {
                     map.setPaintProperty(layerID, 'line-dasharray', AntpathDashArraySequence[step]);
                     step = newStep;
                 }
 
+                // Mark the function completed time.
+                animationCompleted = new Date();
+
                 // Request the next frame of the animation.
                 requestAnimationFrame(animateDashArray);
             }
 
             // start the animation
-            animateDashArray(42);
+            animateDashArray(69);
         }).catch((err) => {
             console.error("err fetching linestrings", err);
         });
