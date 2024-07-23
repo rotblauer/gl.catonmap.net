@@ -544,7 +544,7 @@ export function main() {
     let catLinestringCache = {};
 
     async function fetchLineStringsForCat(cat) {
-        const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 18; // T-18hours
+        const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 36; // T-hours
         // const timeEnd = Math.floor(Date.now() / 1000);
         const params = new URLSearchParams({
             uuids: cat.properties.UUID,
@@ -571,18 +571,24 @@ export function main() {
             // console.debug(cat.properties.UUID, "data", featureCollection);
             return featureCollection;
         }).then((featureCollection) => {
+            // Short circuit if the data is empty. (All might have been filtered).
             if (featureCollection.features.length === 0) return featureCollection;
+
+            // Short circuit if this cat's existing linestrings match the incoming ones (cache hit).
             if (catLinestringCache[cat.properties.UUID] &&
                 JSON.stringify(catLinestringCache[cat.properties.UUID]) === JSON.stringify(featureCollection)) {
                 return {features: []};
             }
+            // Otherwise assign the cache.
             catLinestringCache[cat.properties.UUID] = featureCollection;
+
             // // Only antpath the first (latest) <limit>.
             // const limit = 2;
             // if (featureCollection.features.length > limit) {
             //     featureCollection.features = featureCollection.features.slice(0, limit);
             // }
 
+            // Ensure this cat's linestrings are added as a source to the map.
             if (!map.getSource(`linestrings-${cat.properties.UUID}`)) {
                 map.addSource(`linestrings-${cat.properties.UUID}`, {
                     type: 'geojson',
