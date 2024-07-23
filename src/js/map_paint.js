@@ -79,6 +79,27 @@ export const AntPathPaint = {
             'line-width': 2,
             'line-dasharray': [0, 4, 3]
     },
+    'label': {
+        // https://maplibre.org/maplibre-style-spec/layers/#text-color
+        'text-color': [
+            'match',
+            ['get', 'Activity'],
+            ...function () {
+                let arr = [];
+                for (let [k, v] of Object.entries(colorMap.activity)) {
+                    // arr.push(k, Color(v).lighten(0.7).hex());
+                    arr.push(k, v);
+                }
+                return arr;
+            }(),
+            /* else */ '#000000',
+        ],
+        'text-halo-color': '#FFFFFF',
+        'text-halo-width': 6,
+        'text-halo-blur': 1,
+        // 'line-width': 4,
+        // 'line-opacity': 1,
+    }
 }
 
 export function Activity() {

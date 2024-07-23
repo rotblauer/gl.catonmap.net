@@ -202,8 +202,83 @@ export function main() {
             map.addSource(`linestrings-${status.properties.UUID}`, {
                 type: 'geojson', data: JSON.parse(`{ "type": "FeatureCollection", "features": [] }`),
             });
-
         }
+
+        // The following chunk creates labels for linestrings.
+        // At the moment, this is only a prototype. I'm not set on the UI yet.
+        // It would be nice to see more information about the linestrings.
+        if (!map.getLayer(`linestrings-labels-${status.properties.UUID}`)) {
+            //  map.addLayer({
+            //             'id': 'poi-labels',
+            //             'type': 'symbol',
+            //             'source': 'places',
+            //             'layout': {
+            //                 'text-field': ['get', 'description'],
+            //                 'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+            //                 'text-radial-offset': 0.5,
+            //                 'text-justify': 'auto',
+            //                 'icon-image': ['concat', ['get', 'icon'], '_15']
+            //             }
+            //         });
+
+            // https://maplibre.org/maplibre-gl-js/docs/examples/variable-label-placement/
+            // https://maplibre.org/maplibre-gl-js/docs/examples/display-and-style-rich-text-labels/
+            // https://maplibre.org/maplibre-gl-js/docs/examples/cluster-html/
+
+            map.addLayer({
+                'id': `linestrings-labels-${status.properties.UUID}`,
+                'type': 'symbol',
+                'source': `linestrings-${status.properties.UUID}`,
+                'layout': {
+                    // https://maplibre.org/maplibre-style-spec/layers/#text-field
+                    // 'text-field': ['get', 'MeasuredSimplifiedTraversedKilometers'],
+                    // 'text-field': [
+                    //     'number-format',
+                    //     ['get', 'MeasuredSimplifiedTraversedKilometers'],
+                    //     {'min-fraction-digits': 1, 'max-fraction-digits': 1}
+                    // ],
+                    'text-field': [
+                        'format',
+                        ['get', 'Name'], {'font-scale': 1.0},
+                        '\n', {},
+                        ['number-format', ['get', 'MeasuredSimplifiedTraversedKilometers'], {
+                            'min-fraction-digits': 0,
+                            'max-fraction-digits': 2,
+                        }],
+                        {
+                            'font-scale': 1.0,
+                            // 'text-font': [
+                            //     'literal',
+                            //     ['DIN Offc Pro Italic', 'Arial Unicode MS Regular']
+                            // ]
+                        },
+                        ' km', {},
+                        '\n', {},
+                        ['number-format', ['get', 'KmpH'], {
+                            'min-fraction-digits': 0,
+                            'max-fraction-digits': 1,
+                        }],
+                        {
+                            'font-scale': 1.0,
+                        },
+                        ' km/h', {},
+                        '\n', {},
+                        ['number-format', ['/', ['to-number', ['get', 'Duration']], 60], {
+                            'min-fraction-digits': 0,
+                            'max-fraction-digits': 1,
+                        }], {},
+                        ' min', {}
+                    ],
+                    'text-variable-anchor': ['bottom', 'top', 'left', 'right'],
+                    'text-radial-offset': 0.62,
+                    'text-justify': 'left', // 'auto'
+                    // 'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                    // 'text-size': 10
+                },
+                'paint': AntPathPaint.label,
+            })
+        }
+
         if (!map.getLayer(`linestrings-dashed-${status.properties.UUID}`)) {
             // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/
             map.addLayer({
@@ -479,7 +554,7 @@ export function main() {
                         "type": "Feature",
                         "geometry": {
                             "type": "LineString",
-                            "coordinates": [features[i-1].geometry.coordinates]
+                            "coordinates": [features[i - 1].geometry.coordinates]
                         },
                         "properties": {}
                     });
@@ -601,9 +676,11 @@ export function main() {
 
             if (!map.getSource(`linestrings-${cat.properties.UUID}`)) {
                 map.addSource(`linestrings-${cat.properties.UUID}`, {
-                    type: 'geojson', data: featureCollection,
+                    type: 'geojson',
+                    data: featureCollection,
                 });
             } else {
+                // Else the source exists and we just want to update the data for it.
                 map.getSource(`linestrings-${cat.properties.UUID}`).setData(featureCollection);
             }
 
