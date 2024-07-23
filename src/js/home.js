@@ -31,6 +31,7 @@ import {isMobileDevice} from "@/js/device";
 import {getState, setState, subscribeStateAndCall, unsubscribeState} from "@/js/state";
 import {AntPathPaint, AntpathDashArraySequence, ColorMap} from "@/js/map_paint";
 import {featureCollection} from "@turf/turf";
+import * as layers from "@/js/layers";
 // import {featureCollection} from "@turf/turf";
 
 console.debug("state", getState());
@@ -187,15 +188,7 @@ export function main() {
         }
 
         if (!map.getLayer(`layer-lastpush-linestrings-${status.properties.UUID}`)) {
-            map.addLayer({
-                'id': `layer-lastpush-linestrings-${status.properties.UUID}`,
-                'type': 'line',
-                'source': `lastpush-linestrings-${status.properties.UUID}`,
-                'layout': {
-                    'line-join': 'round', 'line-cap': 'round'
-                },
-                'paint': AntPathPaint.background,
-            });
+            map.addLayer(layers.LinestringsLastPush(status.properties.UUID));
         }
 
         if (!map.getSource(`linestrings-${status.properties.UUID}`)) {
@@ -208,100 +201,16 @@ export function main() {
         // At the moment, this is only a prototype. I'm not set on the UI yet.
         // It would be nice to see more information about the linestrings.
         if (!map.getLayer(`linestrings-labels-${status.properties.UUID}`)) {
-            //  map.addLayer({
-            //             'id': 'poi-labels',
-            //             'type': 'symbol',
-            //             'source': 'places',
-            //             'layout': {
-            //                 'text-field': ['get', 'description'],
-            //                 'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-            //                 'text-radial-offset': 0.5,
-            //                 'text-justify': 'auto',
-            //                 'icon-image': ['concat', ['get', 'icon'], '_15']
-            //             }
-            //         });
-
-            // https://maplibre.org/maplibre-gl-js/docs/examples/variable-label-placement/
-            // https://maplibre.org/maplibre-gl-js/docs/examples/display-and-style-rich-text-labels/
-            // https://maplibre.org/maplibre-gl-js/docs/examples/cluster-html/
-
-            map.addLayer({
-                'id': `linestrings-labels-${status.properties.UUID}`,
-                'type': 'symbol',
-                'source': `linestrings-${status.properties.UUID}`,
-                'layout': {
-                    // https://maplibre.org/maplibre-style-spec/layers/#text-field
-                    // 'text-field': ['get', 'MeasuredSimplifiedTraversedKilometers'],
-                    // 'text-field': [
-                    //     'number-format',
-                    //     ['get', 'MeasuredSimplifiedTraversedKilometers'],
-                    //     {'min-fraction-digits': 1, 'max-fraction-digits': 1}
-                    // ],
-                    'text-field': [
-                        'format',
-                        ['get', 'Name'], {'font-scale': 1.0},
-                        '\n', {},
-                        ['number-format', ['get', 'MeasuredSimplifiedTraversedKilometers'], {
-                            'min-fraction-digits': 0,
-                            'max-fraction-digits': 2,
-                        }],
-                        {
-                            'font-scale': 1.0,
-                            // 'text-font': [
-                            //     'literal',
-                            //     ['DIN Offc Pro Italic', 'Arial Unicode MS Regular']
-                            // ]
-                        },
-                        ' km', {},
-                        '\n', {},
-                        ['number-format', ['/', ['to-number', ['get', 'Duration']], 60], {
-                            'min-fraction-digits': 0,
-                            'max-fraction-digits': 1,
-                        }], {},
-                        ' min', {},
-                        '\n', {},
-                        ['number-format', ['get', 'KmpH'], {
-                            'min-fraction-digits': 0,
-                            'max-fraction-digits': 1,
-                        }],
-                        {
-                            'font-scale': 1.0,
-                        },
-                        ' km/h', {},
-                    ],
-                    'text-variable-anchor': ['bottom', 'top', 'left', 'right'],
-                    'text-radial-offset': 0.62,
-                    'text-justify': 'left', // 'auto'
-                    // 'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-                    // 'text-size': 10
-                },
-                'paint': AntPathPaint.label,
-            })
+            map.addLayer(layers.LinestringsLabels(status.properties.UUID));
         }
 
         if (!map.getLayer(`linestrings-dashed-${status.properties.UUID}`)) {
             // https://docs.mapbox.com/mapbox-gl-js/example/animate-ant-path/
-            map.addLayer({
-                'id': `linestrings-dashed-${status.properties.UUID}`,
-                'type': 'line',
-                'source': `linestrings-${status.properties.UUID}`,
-                'layout': {
-                    'line-join': 'round', 'line-cap': 'round'
-                },
-                'paint': AntPathPaint.dashed,
-            }, `layer-lastpush-linestrings-${status.properties.UUID}`);
+            map.addLayer(layers.LinestringsDashed(status.properties.UUID), `layer-lastpush-linestrings-${status.properties.UUID}`);
         }
 
         if (!map.getLayer(`linestrings-background-${status.properties.UUID}`)) {
-            map.addLayer({
-                'id': `linestrings-background-${status.properties.UUID}`,
-                'type': 'line',
-                'source': `linestrings-${status.properties.UUID}`,
-                'layout': {
-                    'line-join': 'round', 'line-cap': 'round'
-                },
-                'paint': AntPathPaint.background,
-            }, `linestrings-dashed-${status.properties.UUID}`);
+            map.addLayer(layers.LinestringsBackground(status.properties.UUID), `linestrings-dashed-${status.properties.UUID}`);
         }
 
         // LineStrings (async)
