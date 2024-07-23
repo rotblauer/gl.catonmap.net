@@ -39,7 +39,8 @@ export function initMap() {
 
 // Navigation control is a standard maplibre control, which comes with the map by default.
 // Zoom +/-, compass, and ~~fullscreen~~.
-    map.addControl(new maplibregl.NavigationControl());
+    const mapCtrl = new maplibregl.NavigationControl({showCompass: true, showZoom: true, visualizePitch: true});
+    map.addControl(mapCtrl);
 
     if (!isMobileDevice()) {
 // Export control lets you print the map to PNG, JPEG, PDF, or SVG.

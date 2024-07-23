@@ -254,6 +254,12 @@ export function main() {
                         },
                         ' km', {},
                         '\n', {},
+                        ['number-format', ['/', ['to-number', ['get', 'Duration']], 60], {
+                            'min-fraction-digits': 0,
+                            'max-fraction-digits': 1,
+                        }], {},
+                        ' min', {},
+                        '\n', {},
                         ['number-format', ['get', 'KmpH'], {
                             'min-fraction-digits': 0,
                             'max-fraction-digits': 1,
@@ -262,12 +268,6 @@ export function main() {
                             'font-scale': 1.0,
                         },
                         ' km/h', {},
-                        '\n', {},
-                        ['number-format', ['/', ['to-number', ['get', 'Duration']], 60], {
-                            'min-fraction-digits': 0,
-                            'max-fraction-digits': 1,
-                        }], {},
-                        ' min', {}
                     ],
                     'text-variable-anchor': ['bottom', 'top', 'left', 'right'],
                     'text-radial-offset': 0.62,
