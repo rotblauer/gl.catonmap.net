@@ -6,6 +6,7 @@
 // Test import of styles
 import '@/styles/index.scss'
 import '@/styles/map.scss'
+import 'bootstrap-datepicker/dist/css/bootstrap-datepicker.css'
 
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
@@ -13,6 +14,8 @@ import $ from 'jquery'
 
 // Import bootstrap icons
 import 'bootstrap-icons/font/bootstrap-icons.css'
+
+import 'bootstrap-datepicker/dist/js/bootstrap-datepicker.js';
 
 import {timeAgo} from "@/js/timeago";
 
@@ -35,6 +38,19 @@ import * as layers from "@/js/layers";
 // import {featureCollection} from "@turf/turf";
 
 console.debug("state", getState());
+
+// https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
+String.prototype.toHHMMSS = function () {
+    var sec_num = parseInt(this, 10); // don't forget the second param
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return hours+':'+minutes+':'+seconds;
+}
 
 export function main() {
     const map = initMap();
@@ -107,6 +123,43 @@ export function main() {
         }
     });
 
+    // $('.datepicker').datepicker({
+    //     todayBtn: true,
+    // });
+
+    $('.input-daterange input').each(function() {
+        $(this).datepicker({
+            todayBtn: true,
+            todayHighlight: true,
+        });
+    });
+
+    let catStatuses = [];
+    let catMarkers = [];
+    let ghostCatMarkers = []; // for 'real-time' replay of last cat tracks
+
+    // https://bootstrap-datepicker.readthedocs.io/en/latest/markup.html
+    $('#datepicker-start').datepicker('update', new Date((Math.floor(Date.now() / 1000) - 60 * 60 * 24)*1000))
+    $('#datepicker-end').datepicker('update', new Date());
+    $('#datepicker-go-button').on('click', () => {
+        // Update each cat's status.
+        for (let status of catStatuses) {
+            updateCatStatus(status);
+        }
+    });
+    /*
+    $('#datepicker').on('changeDate', function() {
+        $('#my_hidden_input').val(
+            $('#datepicker').datepicker('getFormattedDate')
+        );
+});
+
+Note that that input-daterange itself does not implement the datepicker methods. Methods should be directly called to the inputs. For example:
+    $('.input-daterange input').each(function() {
+    $(this).datepicker('clearDates');
+});
+     */
+
 // SERVICES
 
     let servicesWhitelistURLs = [/ia\./, /rye\./, /edge/, /devop/];
@@ -165,10 +218,6 @@ export function main() {
             console.error("err", err);
         });
     }
-
-    let catStatuses = [];
-    let catMarkers = [];
-    let ghostCatMarkers = []; // for 'real-time' replay of last cat tracks
 
     function getCatStatus(uuid) {
         return catStatuses.find((status) => {
@@ -544,12 +593,17 @@ export function main() {
     let catLinestringCache = {};
 
     async function fetchLineStringsForCat(cat) {
-        const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 36; // T-hours
+        // const timeStart = Math.floor(Date.now() / 1000) - 60 * 60 * 36; // T-hours
         // const timeEnd = Math.floor(Date.now() / 1000);
+        const tstart = $('#datepicker-start').datepicker('getUTCDate').setUTCHours(0,0,0,0);
+        const tend = $('#datepicker-end').datepicker('getUTCDate').setUTCHours(23,59,59,999);
+        const timeStart = Math.floor( tstart / 1000);
+        const timeEnd = Math.floor(tend/ 1000);
+
         const params = new URLSearchParams({
             uuids: cat.properties.UUID,
             tstart: timeStart,
-            // tend: timeEnd,
+            tend: timeEnd,
         });
         const target = new URL(`https://cattracks.cc/linestring?${params.toString()}`).toString();
 
@@ -572,7 +626,20 @@ export function main() {
             return featureCollection;
         }).then((featureCollection) => {
             // Short circuit if the data is empty. (All might have been filtered).
-            if (featureCollection.features.length === 0) return featureCollection;
+            // if (featureCollection.features.length === 0) return featureCollection;
+
+            // Modify or add properties on each feature.
+            // Do this before the cache so that the cache can be reused as canonical data,
+            // assuming that all create/edit operations are deterministic.
+            for (let idx in featureCollection.features) {
+
+                // Add a formatted Date (and Time) property to the features
+                // so DateTime can be displayed in the linestring label.
+                featureCollection.features[idx].properties['startDate'] = new Date(featureCollection.features[idx].properties.Start * 1000).toLocaleString();
+
+                // Create a nicely-formatted HH:MM:SS property for the Duration value.
+                featureCollection.features[idx].properties['durationHHMMSS'] = (featureCollection.features[idx].properties.Duration + "").toHHMMSS();;
+            }
 
             // Short circuit if this cat's existing linestrings match the incoming ones (cache hit).
             if (catLinestringCache[cat.properties.UUID] &&

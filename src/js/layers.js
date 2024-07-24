@@ -35,16 +35,20 @@ export const LinestringsLabels = (uuid) => {
         'type': 'symbol',
         'source': `linestrings-${uuid}`,
         'layout': {
-            // https://maplibre.org/maplibre-style-spec/layers/#text-field
-            // 'text-field': ['get', 'MeasuredSimplifiedTraversedKilometers'],
-            // 'text-field': [
-            //     'number-format',
-            //     ['get', 'MeasuredSimplifiedTraversedKilometers'],
-            //     {'min-fraction-digits': 1, 'max-fraction-digits': 1}
+
+            // 'icon-image': [
+            //     'TODO'
             // ],
+            // https://maplibre.org/maplibre-style-spec/layers/#symbol-placement
+            'symbol-placement': 'point', // 'line', 'line-center',
+            // https://maplibre.org/maplibre-style-spec/layers/#symbol-sort-key
+            'symbol-sort-key': ['get', 'Duration'],
+            // https://maplibre.org/maplibre-style-spec/layers/#text-field
             'text-field': [
                 'format',
                 ['get', 'Name'], {'font-scale': 1.0},
+                ' - ', {},
+                ['get', 'startDate'], {'font-scale': 0.9},
                 '\n', {},
                 ['number-format', ['get', 'MeasuredSimplifiedTraversedKilometers'], {
                     'min-fraction-digits': 0,
@@ -58,12 +62,13 @@ export const LinestringsLabels = (uuid) => {
                     // ]
                 },
                 ' km', {},
-                '\n', {},
-                ['number-format', ['/', ['to-number', ['get', 'Duration']], 60], {
-                    'min-fraction-digits': 0,
-                    'max-fraction-digits': 1,
-                }], {},
-                ' min', {},
+                ', ', {},
+                ['get', 'durationHHMMSS'], {},
+                // ['number-format', ['/', ['to-number', ['get', 'Duration']], 60], {
+                //     'min-fraction-digits': 0,
+                //     'max-fraction-digits': 1,
+                // }], {},
+                // ' min', {},
                 '\n', {},
                 ['number-format', ['get', 'KmpH'], {
                     'min-fraction-digits': 0,
